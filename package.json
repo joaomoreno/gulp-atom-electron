@@ -1,0 +1,26 @@
+{
+  "name": "gulp-atom-shell",
+  "version": "0.0.1",
+  "description": "gulp plugin for packaging Atom Shell applications",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joaomoreno/gulp-atom-shell.git"
+  },
+  "keywords": [
+    "gulp",
+    "atom",
+    "shell",
+    "atom-shell",
+    "github"
+  ],
+  "author": "João Moreno",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joaomoreno/gulp-atom-shell/issues"
+  },
+  "homepage": "https://github.com/joaomoreno/gulp-atom-shell"
+}
