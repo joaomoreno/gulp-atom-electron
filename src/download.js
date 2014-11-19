@@ -4,10 +4,10 @@ var fs = require('fs');
 var path = require('path');
 var File = require('vinyl');
 var es = require('event-stream');
-var unzip = require('gulp-unzip');
 var GitHubApi = require('github');
 var mkdirp = require('mkdirp');
 var request = require('request');
+var unzip = require('unzip');
 
 function filter(f) {
 	return es.map(function (file, cb) { if (f(file)) cb(null, file); else cb(); });
@@ -34,18 +34,24 @@ module.exports = function (opts) {
 		var that = this;
 		
 		function done() {
-			fs.readFile(downloadPath, function (err, data) {
-				if (err) { return callback(err); }
-				
-				that.emit('data', new File({
-					cwd: '.',
-					base: path.dirname(downloadPath),
-					path: downloadPath,
-					contents: data
-				}));
-				that.emit('end');
-				callback();
-			});
+			fs.createReadStream(downloadPath)
+				.pipe(unzip.Parse())
+				.on('entry', function (entry) {
+					var parts = [];
+					entry
+						.pipe(es.through(function (part) { parts.push(part); }))
+						.on('error', function (err) { callback(err); })
+						.on('end', function (err) {
+							that.emit('data', new File({
+								cwd: '.',
+								base: '',
+								path: entry.path,
+								contents: Buffer.concat(parts)
+							}));
+						});
+				})
+				.on('error', function (err) { callback(err); })
+				.on('close', function () { that.emit('end'); });
 		}
 		
 		fs.exists(downloadPath, function (exists) {
@@ -53,7 +59,7 @@ module.exports = function (opts) {
 				return done();
 			}
 			
-			var github = new GitHubApi({ version: '3.0.0', repo: 'atom/atom-shell' });
+			var github = new GitHubApi({ version: '3.0.0' });
 			github.releases.listReleases({
 				owner: 'atom',
 				repo: 'atom-shell'
@@ -79,15 +85,13 @@ module.exports = function (opts) {
 					
 					console.log('Downloading atom-shell ' + opts.version + ' for ' + opts.platform + '...');
 					
-					request(asset.browser_download_url)
-						.pipe(fs.createWriteStream(downloadPath))
-						.on('end', done);
+					var req = request(asset.browser_download_url);
+					req.on('end', done);
+					req.pipe(fs.createWriteStream(downloadPath));
 				});
 			});
 		});
 	});
-
-	result = result.pipe(unzip());
 	
 	if (opts.excludeDefaultApp) {
 		if (opts.platform === 'win32') {
