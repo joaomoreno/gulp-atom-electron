@@ -1,4 +1,4 @@
 gulp-atom-shell
 ===============
 
-![build status](https://travis-ci.org/joaomoreno/gulp-atom-shell.svg?branch=master)
+[![Build Status](https://travis-ci.org/joaomoreno/gulp-atom-shell.svg?branch=master)](https://travis-ci.org/joaomoreno/gulp-atom-shell)
