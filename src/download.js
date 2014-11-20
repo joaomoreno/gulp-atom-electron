@@ -83,8 +83,6 @@ module.exports = function (opts) {
 				mkdirp(path.dirname(downloadPath), function (err) {
 					if (err) { return callback(err); }
 					
-					console.log('Downloading atom-shell ' + opts.version + ' for ' + opts.platform + '...');
-					
 					var req = request(asset.browser_download_url);
 					req.on('end', done);
 					req.pipe(fs.createWriteStream(downloadPath));
