@@ -17,7 +17,7 @@ function patchExecutable(name, version) {
 			fs.writeFile(tempPath, file.contents, function (err) {
 				if (err) { return cb(err); }
 				
-				return _rcedit(tempPath, {
+				return rcedit(tempPath, {
 					'version-string': {
 						CompanyName: 'GitHub, Inc.',
 						FileDescription: name,
@@ -58,6 +58,10 @@ module.exports = function(opts) {
 	if (!opts.productVersion) {
 		throw new Error('Missing atom-shell option: productVersion.');
 	}
+
+	if (opts.platform === 'win32' && !process.platform !== opts.platform) {
+		throw new Error('Can\'t build win32 build on a non-win32 machine.');	
+	}
 	
 	var downloadOpts = {
 		cachePath: opts.cachePath || path.join(os.tmpdir(), 'atom-shell-cache'),
@@ -65,21 +69,29 @@ module.exports = function(opts) {
 		platform: opts.platform || process.platform,
 		excludeDefaultApp: true
 	};
+
+	var atomshell = download(downloadOpts);
+
+	if (opts.platform === 'win32') {
+		atomshell = atomshell
+			.pipe(patchExecutable(opts.productName, opts.productVersion))
+			.pipe(rename(function (path) {
+				if (path.basename === 'atom' && path.extname === '.exe') {
+					path.basename = opts.productName;
+				}
+			}));
+	}
+
+	var appPath = (function() {
+		switch (opts.platform) {
+			case 'win32': return 'resources/app/';
+			case 'darwin': return 'Atom.app/Contents/Resources/app/';
+			return 'resources/app/';
+		}
+	})();
 	
 	var pass = es.through();
-	return es.duplex(
-		pass,
-		es.merge(
-			download(downloadOpts)
-				.pipe(patchExecutable(opts.productName, opts.productVersion))
-				.pipe(rename(function (path) {
-					if (path.basename === 'atom' && path.extname === '.exe') {
-						path.basename = opts.productName;
-					}
-				})),
-			pass.pipe(rename(function (path) {
-				path.dirname = 'resources/app/' + path.dirname;
-			}))
-		)
-	);
+	var src = pass.pipe(rename(function (path) { path.dirname = appPath + path.dirname; }));
+
+	return es.duplex(pass, es.merge(atomshell, src));
 };
