@@ -125,4 +125,29 @@ describe('package', function () {
 				cb();
 			}));
 	});
+
+	it('[linux-ia32] should move input files into the app directory', function(cb) {
+		if (process.platform !== 'win32') {
+			return cb();
+		}
+
+		var foundIt = false;
+
+		es.readArray([new File({ path: 'foo/bar', base: '' })])
+			.pipe(atomshell.package({
+				version: '0.19.2',
+				productName: 'TestApp',
+				productVersion: '0.0.1',
+				platform: 'linux-ia32',
+				cachePath: cachePath
+			}))
+			.pipe(es.through(function (f) {
+				if (/resources\/app\/foo\/bar$/.test(f.path)) {
+					foundIt = true;
+				}
+			}, function () {
+				assert.ok(foundIt);
+				cb();
+			}));
+	});
 });
