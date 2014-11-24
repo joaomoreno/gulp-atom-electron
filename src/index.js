@@ -4,8 +4,6 @@ var es = require('event-stream');
 var fs = require('vinyl-fs');
 var rename = require('gulp-rename');
 var downloadAtomShell = require('gulp-download-atom-shell');
-var json = require('gulp-json-editor');
-var gulpif = require('gulp-if');
 var rimraf = require('rimraf');
 
 var platform = require('./' + (function (platform) {
