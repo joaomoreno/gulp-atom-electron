@@ -33,10 +33,8 @@ module.exports = function(opts) {
 	}
 
 	var pass = es.through();
-	var src = pass.pipe(gulpif(function(f) { return f.relative === 'package.json'; }, json(function (json) {
-		json.name = opts.productName;
-		return json;
-	})));
+	var src = pass;
+	src.pause();
 
 	var atomshell = es.readable(function (_, cb) {
 		var that = this;
@@ -51,8 +49,20 @@ module.exports = function(opts) {
 				platform.patchAtom(opts, function (err) {
 					if (err) { return cb(err); }
 
-					src.pipe(fs.dest(opts.outputPath + '/' + platform.getAppPath(opts.productName)))
-						.on('end', that.emit.bind(that, 'end'));
+					src
+						.pipe(es.through(function (f) {
+							if (f.relative === 'package.json') {
+								var json = JSON.parse(f.contents.toString('utf8'));
+								json.name = opts.productName;
+								f.contents = new Buffer(JSON.stringify(json), 'utf8');
+							}
+
+							this.emit('data', f);
+						}))
+						.pipe(fs.dest(opts.outputPath + '/' + platform.getAppPath(opts.productName)))
+						.on('end', function () { setTimeout(function () { that.emit('end'); }, 2000); });
+
+					src.resume();
 				});
 			});
 		});

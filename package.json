@@ -26,8 +26,6 @@
   "dependencies": {
     "event-stream": "^3.1.7",
     "gulp-download-atom-shell": "0.0.4",
-    "gulp-if": "^1.2.5",
-    "gulp-json-editor": "^2.2.1",
     "gulp-rename": "^1.2.0",
     "plist": "^1.1.0",
     "rcedit": "^0.3.0",
