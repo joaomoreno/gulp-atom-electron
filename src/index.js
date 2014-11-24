@@ -4,6 +4,8 @@ var es = require('event-stream');
 var fs = require('vinyl-fs');
 var rename = require('gulp-rename');
 var downloadAtomShell = require('gulp-download-atom-shell');
+var json = require('gulp-json-editor');
+var gulpif = require('gulp-if');
 var rimraf = require('rimraf');
 
 var platform = require('./' + (function (platform) {
@@ -30,10 +32,11 @@ module.exports = function(opts) {
 		throw new Error('Missing atom-shell option: productVersion.');
 	}
 
-	var appPath = platform.getAppPath(opts.productName);
-
 	var pass = es.through();
-	var src = pass.pipe(rename(function (path) { path.dirname = appPath + '/' + path.dirname; }));
+	var src = pass.pipe(gulpif(function(f) { return f.relative === 'package.json'; }, json(function (json) {
+		json.name = opts.productName;
+		return json;
+	})));
 
 	var atomshell = es.readable(function (_, cb) {
 		var that = this;
@@ -48,8 +51,7 @@ module.exports = function(opts) {
 				platform.patchAtom(opts, function (err) {
 					if (err) { return cb(err); }
 
-					src
-						.pipe(fs.dest(opts.outputPath))
+					src.pipe(fs.dest(opts.outputPath + '/' + platform.getAppPath(opts.productName)))
 						.on('end', that.emit.bind(that, 'end'));
 				});
 			});
