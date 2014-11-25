@@ -8,16 +8,22 @@ exports.getAppPath = function(productName) {
 	return 'resources/app';
 };
 
-function patchExecutable(executablePath, productName, productVersion, cb) {
-	var versionString = {
-		CompanyName: 'GitHub, Inc.',
-		FileDescription: 'Atom',
-		LegalCopyright: 'Copyright (C) 2014 GitHub, Inc. All rights reserved',
-		ProductName: productName,
-		ProductVersion: productVersion
+function patchExecutable(executablePath, opts, cb) {
+	var patch = {
+		'version-string': {
+			CompanyName: 'GitHub, Inc.',
+			FileDescription: 'Atom',
+			LegalCopyright: 'Copyright (C) 2014 GitHub, Inc. All rights reserved',
+			ProductName: opts.productName,
+			ProductVersion: opts.productVersion
+		}
 	};
+
+	if (opts.winIcon) {
+		patch.icon = opts.winIcon;
+	}
 	
-	rcedit(executablePath, { 'version-string': versionString }, cb);
+	rcedit(executablePath, patch, cb);
 }
 
 exports.patchAtom = function(opts, cb) {
@@ -26,7 +32,7 @@ exports.patchAtom = function(opts, cb) {
 	rimraf(p('resources/default_app'), function (err) {
 		if (err) { return cb(err); }
 
-		patchExecutable(p('atom.exe'), opts.productName, opts.productVersion, function (err) {
+		patchExecutable(p('atom.exe'), opts, function (err) {
 			if (err) { return cb(err); }
 
 			fs.rename(p('atom.exe'), p(opts.productName + '.exe'), cb);
