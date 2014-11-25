@@ -23,12 +23,10 @@ gulp.task('default', function () {
 You **must** provide the following options:
 - `version` - the [Atom Shell version](https://github.com/atom/atom-shell/releases) to use
 - `outputPath` - the output path where to place your built app
+- `productName` - the name of your product
+- `productVersion` - the version of your product
 
 The following options are **optional**:
-
-- **All platforms**
-	- `productName` - the name of your product
-	- `productVersion` - the version of your product
 
 - **Windows**
 	- `winIcon` - path to an `.ico` file
