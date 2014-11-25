@@ -11,7 +11,7 @@
     "url": "https://github.com/joaomoreno/gulp-atom-shell.git"
   },
   "keywords": [
-    "gulp",
+    "gulpplugin",
     "atom",
     "shell",
     "atom-shell",
