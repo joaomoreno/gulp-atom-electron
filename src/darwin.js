@@ -12,11 +12,11 @@ exports.getAppPath = function(productName) {
 	return productName + '.app/Contents/Resources/app';
 };
 
-function patchInfoPlist(infoPlistPath, productName) {
+function patchInfoPlist(infoPlistPath, infoPlistTasks) {
 	return vinyl.src(infoPlistPath)
 		.pipe(es.through(function (f) {
 			var infoPlist = plist.parse(f.contents.toString('utf8'));
-			infoPlist['CFBundleName'] = productName;
+			infoPlistTasks.forEach(function (f) { f(infoPlist); });
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
 			this.emit('data', f);
 		}))
@@ -39,13 +39,31 @@ exports.patchAtom = function(opts, cb) {
 		fs.rename(p('Atom.app'), p(appName), function (err) {
 			if (err) { return cb(err); }
 
-			var tasks = [
-				patchInfoPlist(p(appName + '/Contents/Info.plist'), opts.productName)
-			];
+			var tasks = [];
+			var infoPlistTasks = [];
+
+			infoPlistTasks.push(function (d) { d['CFBundleName'] = opts.productName; });
 
 			if (opts.darwinIcon) {
 				tasks.push(patchIcon(opts.darwinIcon, p(appName + '/Contents/Resources/atom.icns')));
 			}
+
+			if (opts.darwinBundleDocumentTypes) {
+				infoPlistTasks.push(function (d) {
+					d['CFBundleDocumentTypes'] = (d['CFBundleDocumentTypes'] || [])
+						.concat(opts.darwinBundleDocumentTypes.map(function (type) {
+							return {
+								CFBundleTypeName: type.name,
+								CFBundleTypeRole: type.role,
+								CFBundleTypeOSTypes: type.ostypes,
+								CFBundleTypeExtensions: type.extensions,
+								CFBundleTypeIconFile: type.iconFile
+							};
+						}));
+				});
+			}
+
+			tasks.push(patchInfoPlist(p(appName + '/Contents/Info.plist'), infoPlistTasks));
 
 			es.merge.apply(null, tasks).on('error', cb).on('end', function () { cb(); });
 		});
