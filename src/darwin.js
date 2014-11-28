@@ -43,6 +43,7 @@ exports.patchAtom = function(opts, cb) {
 			var infoPlistTasks = [];
 
 			infoPlistTasks.push(function (d) { d['CFBundleName'] = opts.productName; });
+			infoPlistTasks.push(function (d) { d['CFBundleVersion'] = opts.productVersion; });
 
 			if (opts.darwinIcon) {
 				tasks.push(patchIcon(opts.darwinIcon, p(appName + '/Contents/Resources/atom.icns')));
