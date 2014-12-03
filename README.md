@@ -30,6 +30,8 @@ The following options are **optional**:
 
 - **Windows**
 	- `winIcon` - path to an `.ico` file
+	- `companyName` - company name
+	- `copyright` - copyright statement
 	
 - **Darwin**
 	- `darwinIcon` - path to an `.icns` file

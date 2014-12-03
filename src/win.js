@@ -11,9 +11,9 @@ exports.getAppPath = function(productName) {
 function patchExecutable(executablePath, opts, cb) {
 	var patch = {
 		'version-string': {
-			CompanyName: 'GitHub, Inc.',
-			FileDescription: 'Atom',
-			LegalCopyright: 'Copyright (C) 2014 GitHub, Inc. All rights reserved',
+			CompanyName: opts.companyName || 'GitHub, Inc.',
+			FileDescription: opts.productName,
+			LegalCopyright: opts.copyright || 'Copyright (C) 2014 GitHub, Inc. All rights reserved',
 			ProductName: opts.productName,
 			ProductVersion: opts.productVersion
 		}
