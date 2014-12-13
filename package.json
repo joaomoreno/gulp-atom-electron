@@ -26,14 +26,13 @@
   "dependencies": {
     "event-stream": "^3.1.7",
     "github-releases": "^0.2.0",
-    "gulp-download-atom-shell": "0.0.4",
     "gulp-rename": "^1.2.0",
     "gulp-vinyl-zip": "0.0.1",
     "mkdirp": "^0.5.0",
     "plist": "^1.1.0",
     "progress": "^1.1.8",
     "rcedit": "^0.3.0",
-    "rimraf": "^2.2.8",
+    "temp": "^0.8.1",
     "vinyl-fs": "^0.3.13"
   },
   "devDependencies": {

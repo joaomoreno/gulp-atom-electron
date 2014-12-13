@@ -1,72 +1,99 @@
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var rimraf = require('rimraf');
 var plist = require('plist');
 var es = require('event-stream');
-var vinyl = require('vinyl-fs');
+var vfs = require('vinyl-fs');
 var rename = require('gulp-rename');
 
-exports.getAppPath = function(productName) {
-	return productName + '.app/Contents/Resources/app';
+function getAppName(opts) {
+	return opts.productName + '.app';
 };
 
-function patchInfoPlist(infoPlistPath, infoPlistTasks) {
-	return vinyl.src(infoPlistPath)
-		.pipe(es.through(function (f) {
-			var infoPlist = plist.parse(f.contents.toString('utf8'));
-			infoPlistTasks.forEach(function (f) { f(infoPlist); });
-			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
+exports.getAppPath = function(opts) {
+	return getAppName(opts) + '/Contents/Resources/app';
+};
+
+function removeDefaultApp() {
+	var regexp = new RegExp('^Atom.app/Contents/Resources/default_app');
+	return es.through(function (f) {
+		if (!regexp.test(f.relative)) {
 			this.emit('data', f);
-		}))
-		.pipe(vinyl.dest(path.dirname(infoPlistPath)));
+		}
+	});
 }
 
-function patchIcon(sourceIconPath, targetIconPath) {
-	return vinyl.src(sourceIconPath)
-		.pipe(rename(path.basename(targetIconPath)))
-		.pipe(vinyl.dest(path.dirname(targetIconPath)));
+function renameApp(opts) {
+	var appName = getAppName(opts);
+
+	return rename(function (path) {
+		// The app folder itself looks like a file
+		if (path.dirname === '.' && path.basename === 'Atom' && path.extname === '.app') {
+			path.basename = opts.productName;
+		} else {
+			path.dirname = path.dirname.replace(/^Atom.app/, appName);
+		}
+	});
 }
 
-exports.patchAtom = function(opts, cb) {
-	var p = function (path) { return opts.outputPath + '/' + path; };
-	var appName = opts.productName + '.app';
+function patchIcon(opts) {
+	if (!opts.darwinIcon) {
+		return es.through();
+	}
 
-	rimraf(p('Atom.app/Contents/Resources/default_app'), function (err) {
-		if (err) { return cb(err); }
+	var iconPath = getAppName(opts) + '/Contents/Resources/atom.icns';
+	var pass = es.through();
 
-		fs.rename(p('Atom.app'), p(appName), function (err) {
-			if (err) { return cb(err); }
+	// filter out original icon
+	var src = pass.pipe(es.through(function (f) {
+		if (f.relative !== iconPath) {
+			this.emit('data', f);
+		}
+	}));
 
-			var tasks = [];
-			var infoPlistTasks = [];
+	// add custom icon
+	var icon = vfs.src(opts.darwinIcon).pipe(rename(iconPath));
 
-			infoPlistTasks.push(function (d) { d['CFBundleName'] = opts.productName; });
-			infoPlistTasks.push(function (d) { d['CFBundleVersion'] = opts.productVersion; });
+	return es.duplex(pass, es.merge(src, icon));
+}
 
-			if (opts.darwinIcon) {
-				tasks.push(patchIcon(opts.darwinIcon, p(appName + '/Contents/Resources/atom.icns')));
-			}
+function patchInfoPlist(opts) {
+	var infoPlistPath = getAppName(opts) + '/Contents/Info.plist';
+
+	return es.through(function (f) {
+		if (f.relative === infoPlistPath) {
+			var infoPlist = plist.parse(f.contents.toString('utf8'));
+
+			infoPlist['CFBundleName'] = opts.productName;
+			infoPlist['CFBundleVersion'] = opts.productVersion;
 
 			if (opts.darwinBundleDocumentTypes) {
-				infoPlistTasks.push(function (d) {
-					d['CFBundleDocumentTypes'] = (d['CFBundleDocumentTypes'] || [])
-						.concat(opts.darwinBundleDocumentTypes.map(function (type) {
-							return {
-								CFBundleTypeName: type.name,
-								CFBundleTypeRole: type.role,
-								CFBundleTypeOSTypes: type.ostypes,
-								CFBundleTypeExtensions: type.extensions,
-								CFBundleTypeIconFile: type.iconFile
-							};
-						}));
-				});
+				infoPlist['CFBundleDocumentTypes'] = (infoPlist['CFBundleDocumentTypes'] || [])
+					.concat(opts.darwinBundleDocumentTypes.map(function (type) {
+						return {
+							CFBundleTypeName: type.name,
+							CFBundleTypeRole: type.role,
+							CFBundleTypeOSTypes: type.ostypes,
+							CFBundleTypeExtensions: type.extensions,
+							CFBundleTypeIconFile: type.iconFile
+						};
+					}));
 			}
 
-			tasks.push(patchInfoPlist(p(appName + '/Contents/Info.plist'), infoPlistTasks));
+			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
+		}
 
-			es.merge.apply(null, tasks).on('error', cb).on('end', function () { cb(); });
-		});
+		this.emit('data', f);
 	});
-};
+}
+
+exports.patch = function(opts) {
+	var pass = es.through();
+
+	var src = pass
+		.pipe(removeDefaultApp())
+		.pipe(renameApp(opts))
+		.pipe(patchIcon(opts))
+		.pipe(patchInfoPlist(opts));
+
+	return es.duplex(pass, src);
+}

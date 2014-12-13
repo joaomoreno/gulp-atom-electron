@@ -1,15 +1,9 @@
 'use strict';
 
 var assert = require('assert');
-var fs = require('fs');
 var path = require('path');
-var rimraf = require('rimraf');
 var vfs = require('vinyl-fs');
 var atomshell = require('../');
-var platform = require('../src/platform');
-
-process.chdir(__dirname);
-rimraf.sync(path.join(__dirname, 'out'));
 
 describe('atomshell', function () {
 	it('should warn about missing options', function() {
@@ -19,7 +13,6 @@ describe('atomshell', function () {
 
 		assert.throws(function () {
 			atomshell({
-				outputPath: 'out',
 				productName: 'TestApp',
 				productVersion: '0.0.1'
 			});
@@ -28,7 +21,6 @@ describe('atomshell', function () {
 		assert.throws(function () {
 			atomshell({
 				version: '0.19.2',
-				productName: 'TestApp',
 				productVersion: '0.0.1'
 			});
 		});
@@ -36,40 +28,114 @@ describe('atomshell', function () {
 		assert.throws(function () {
 			atomshell({
 				version: '0.19.2',
-				outputPath: 'out',
-				productVersion: '0.0.1'
-			});
-		});
-
-		assert.throws(function () {
-			atomshell({
-				version: '0.19.2',
-				outputPath: 'out',
 				productName: 'TestApp'
 			});
 		});
 	});
 
-	it('should copy app files and patch package.json', function(cb) {
-		this.timeout(1000 * 60 * 5 /* 5 minutes */);
+	describe('darwin', function () {
+		it('should copy app files and patch Atom', function(cb) {
+			this.timeout(1000 * 60 * 5 /* 5 minutes */);
 
-		vfs.src('src/**/*')
-			.pipe(atomshell({
-					version: '0.19.2',
-					outputPath: 'out',
-					productName: 'TestApp',
-					productVersion: '0.0.42'
-			}))
-			.on('error', cb)
-			.on('end', function () {
-				var packageJsonPath = path.join('out', platform.getAppPath('TestApp'), 'package.json');
-				assert(fs.existsSync(packageJsonPath));
-				
-				var packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-				assert.equal(packageJson.name, 'TestApp');
-				assert.equal(packageJson.version, '0.0.42');
+			var files = {};
+			process.chdir(__dirname);
 
-				cb();
-			});
+			vfs.src('src/**/*')
+				.pipe(atomshell({
+						version: '0.19.2',
+						platform: 'darwin',
+						productName: 'TestApp',
+						productVersion: '0.0.42'
+				}))
+				.on('data', function (f) {
+					files[f.relative] = f;
+				})
+				.on('error', cb)
+				.on('end', function () {
+					assert(files['TestApp.app']);
+					assert(files['TestApp.app/Contents/Resources/app/main.js']);
+					assert(!Object.keys(files).some(function (k) { return /^TestApp.app\/Contents\/Resources\/default_app/.test(k); }));
+
+					var packageJsonPath = 'TestApp.app/Contents/Resources/app/package.json';
+					assert(files[packageJsonPath]);
+					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
+					assert.equal('TestApp', packageJson.name);
+					assert.equal('0.0.42', packageJson.version);
+
+					cb();
+				});
+		});
+	});
+
+	describe('linux', function () {
+		it('should copy app files and patch Atom', function(cb) {
+			this.timeout(1000 * 60 * 5 /* 5 minutes */);
+
+			var files = {};
+			process.chdir(__dirname);
+
+			vfs.src('src/**/*')
+				.pipe(atomshell({
+						version: '0.19.2',
+						platform: 'linux',
+						productName: 'TestApp',
+						productVersion: '0.0.42'
+				}))
+				.on('data', function (f) {
+					files[f.relative] = f;
+				})
+				.on('error', cb)
+				.on('end', function () {
+					assert(files['resources/app/main.js']);
+					assert(!Object.keys(files).some(function (k) { return /^resources\/default_app/.test(k); }));
+
+					var packageJsonPath = 'resources/app/package.json';
+					assert(files[packageJsonPath]);
+					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
+					assert.equal('TestApp', packageJson.name);
+					assert.equal('0.0.42', packageJson.version);
+
+					// executable exists
+					assert(files['TestApp']);
+					assert(files['TestApp'].stat.mode & 100);
+
+					cb();
+				});
+		});
+	});
+
+	describe('win32', function () {
+		it('should copy app files and patch Atom', function(cb) {
+			this.timeout(1000 * 60 * 5 /* 5 minutes */);
+
+			var files = {};
+			process.chdir(__dirname);
+
+			vfs.src('src/**/*')
+				.pipe(atomshell({
+						version: '0.19.2',
+						platform: 'win32',
+						productName: 'TestApp',
+						productVersion: '0.0.42'
+				}))
+				.on('data', function (f) {
+					files[f.relative] = f;
+				})
+				.on('error', cb)
+				.on('end', function () {
+					assert(files['resources/app/main.js']);
+					assert(!Object.keys(files).some(function (k) { return /^resources\/default_app/.test(k); }));
+
+					var packageJsonPath = 'resources/app/package.json';
+					assert(files[packageJsonPath]);
+					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
+					assert.equal('TestApp', packageJson.name);
+					assert.equal('0.0.42', packageJson.version);
+
+					assert(files['TestApp.exe']);
+
+					cb();
+				});
+		});
 	});
 });
