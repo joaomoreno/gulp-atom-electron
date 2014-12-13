@@ -1,9 +1,11 @@
 'use strict';
 
+var path = require('path');
 var plist = require('plist');
 var es = require('event-stream');
 var vfs = require('vinyl-fs');
 var rename = require('gulp-rename');
+var util = require('./util');
 
 function getAppName(opts) {
 	return opts.productName + '.app';
@@ -14,9 +16,10 @@ exports.getAppPath = function(opts) {
 };
 
 function removeDefaultApp() {
-	var regexp = new RegExp('^Atom.app/Contents/Resources/default_app');
+	var defaultAppPath = path.join('Atom.app', 'Contents', 'Resources', 'default_app');
+
 	return es.through(function (f) {
-		if (!regexp.test(f.relative)) {
+		if (!util.startsWith(f.relative, defaultAppPath)) {
 			this.emit('data', f);
 		}
 	});

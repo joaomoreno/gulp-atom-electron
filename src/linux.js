@@ -1,16 +1,19 @@
 'use strict';
 
+var path = require('path');
 var es = require('event-stream');
 var rename = require('gulp-rename');
+var util = require('./util');
 
 exports.getAppPath = function(opts) {
 	return 'resources/app';
 };
 
 function removeDefaultApp() {
-	var regexp = /^resources\/default_app/;
+	var defaultAppPath = path.join('resources', 'default_app');
+
 	return es.through(function (f) {
-		if (!regexp.test(f.relative)) {
+		if (!util.startsWith(f.relative, defaultAppPath)) {
 			this.emit('data', f);
 		}
 	});

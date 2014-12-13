@@ -4,6 +4,7 @@ var assert = require('assert');
 var path = require('path');
 var vfs = require('vinyl-fs');
 var atomshell = require('../');
+var util = require('../src/util');
 
 describe('atomshell', function () {
 	it('should warn about missing options', function() {
@@ -53,10 +54,10 @@ describe('atomshell', function () {
 				.on('error', cb)
 				.on('end', function () {
 					assert(files['TestApp.app']);
-					assert(files['TestApp.app/Contents/Resources/app/main.js']);
-					assert(!Object.keys(files).some(function (k) { return /^TestApp.app\/Contents\/Resources\/default_app/.test(k); }));
+					assert(files[path.join('TestApp.app', 'Contents', 'Resources', 'app', 'main.js')]);
+					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('TestApp.app', 'Contents', 'Resources', 'default_app')); }));
 
-					var packageJsonPath = 'TestApp.app/Contents/Resources/app/package.json';
+					var packageJsonPath = path.join('TestApp.app', 'Contents', 'Resources', 'app', 'package.json');
 					assert(files[packageJsonPath]);
 					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
 					assert.equal('TestApp', packageJson.name);
@@ -86,10 +87,10 @@ describe('atomshell', function () {
 				})
 				.on('error', cb)
 				.on('end', function () {
-					assert(files['resources/app/main.js']);
-					assert(!Object.keys(files).some(function (k) { return /^resources\/default_app/.test(k); }));
+					assert(files[path.join('resources', 'app', 'main.js')]);
+					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('resources', 'default_app')); }));
 
-					var packageJsonPath = 'resources/app/package.json';
+					var packageJsonPath = path.join('resources', 'app', 'package.json');
 					assert(files[packageJsonPath]);
 					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
 					assert.equal('TestApp', packageJson.name);
@@ -123,10 +124,10 @@ describe('atomshell', function () {
 				})
 				.on('error', cb)
 				.on('end', function () {
-					assert(files['resources/app/main.js']);
-					assert(!Object.keys(files).some(function (k) { return /^resources\/default_app/.test(k); }));
+					assert(files[path.join('resources', 'app', 'main.js')]);
+					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('resources', 'default_app')); }));
 
-					var packageJsonPath = 'resources/app/package.json';
+					var packageJsonPath = path.join('resources', 'app', 'package.json');
 					assert(files[packageJsonPath]);
 					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
 					assert.equal('TestApp', packageJson.name);

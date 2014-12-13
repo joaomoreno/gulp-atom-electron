@@ -1,10 +1,12 @@
 'use strict';
 
 var fs = require('fs');
+var path = require('path');
 var es = require('event-stream');
 var rename = require('gulp-rename');
 var temp = require('temp').track();
 var rcedit = require('rcedit');
+var util = require('./util');
 
 exports.getAppPath = function(opts) {
 	return 'resources/app';
@@ -33,26 +35,24 @@ function patchExecutable(opts) {
 			patch.icon = opts.winIcon;
 		}
 
-		temp.open('gulp-atom-shell', function (err, info) {
+		var tempPath = temp.path();
+
+		fs.writeFile(tempPath, f.contents, function (err) {
 			if (err) { return that.emit('error', err); }
 
-			fs.writeFile(info.path, f.contents, function (err) {
+			rcedit(tempPath, patch, function (err) {
 				if (err) { return that.emit('error', err); }
 
-				rcedit(into.path, patch, function (err) {
+				fs.readFile(tempPath, function (err, data) {
 					if (err) { return that.emit('error', err); }
 
-					fs.readFile(info.path, function (err, data) {
+					f.contents = data;
+
+					fs.unlink(tempPath, function (err) {
 						if (err) { return that.emit('error', err); }
-
-						f.contents = data;
-
-						fs.close(info.fd, function (err) {
-							if (err) { return that.emit('error', err); }
-
-							that.emit('data', f);
-						});
-					});
+						
+						that.emit('data', f);
+					})
 				});
 			});
 		});
@@ -60,9 +60,10 @@ function patchExecutable(opts) {
 }
 
 function removeDefaultApp() {
-	var regexp = /^resources\/default_app/;
+	var defaultAppPath = path.join('resources', 'default_app');
+
 	return es.through(function (f) {
-		if (!regexp.test(f.relative)) {
+		if (!util.startsWith(f.relative, defaultAppPath)) {
 			this.emit('data', f);
 		}
 	});
