@@ -46,9 +46,11 @@ describe('atomshell', function () {
 						version: '0.19.2',
 						platform: 'darwin',
 						productName: 'TestApp',
-						productVersion: '0.0.42'
+						productVersion: '0.0.42',
+						darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
 				}))
 				.on('data', function (f) {
+					assert(!files[f.relative]);
 					files[f.relative] = f;
 				})
 				.on('error', cb)
