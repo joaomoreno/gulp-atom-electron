@@ -25,25 +25,12 @@ function removeDefaultApp() {
 	});
 }
 
-function renameApp(opts) {
-	var appName = getAppName(opts);
-
-	return rename(function (path) {
-		// The app folder itself looks like a file
-		if (path.dirname === '.' && path.basename === 'Atom' && path.extname === '.app') {
-			path.basename = opts.productName;
-		} else {
-			path.dirname = path.dirname.replace(/^Atom.app/, appName);
-		}
-	});
-}
-
 function patchIcon(opts) {
 	if (!opts.darwinIcon) {
 		return es.through();
 	}
 
-	var iconPath = getAppName(opts) + '/Contents/Resources/atom.icns';
+	var iconPath = path.join('Atom.app', 'Contents', 'Resources', 'atom.icns');
 	var pass = es.through();
 
 	// filter out original icon
@@ -60,7 +47,7 @@ function patchIcon(opts) {
 }
 
 function patchInfoPlist(opts) {
-	var infoPlistPath = getAppName(opts) + '/Contents/Info.plist';
+	var infoPlistPath = path.join('Atom.app', 'Contents', 'Info.plist');
 
 	return es.through(function (f) {
 		if (f.relative === infoPlistPath) {
@@ -89,14 +76,27 @@ function patchInfoPlist(opts) {
 	});
 }
 
+function renameApp(opts) {
+	var appName = getAppName(opts);
+
+	return rename(function (path) {
+		// The app folder itself looks like a file
+		if (path.dirname === '.' && path.basename === 'Atom' && path.extname === '.app') {
+			path.basename = opts.productName;
+		} else {
+			path.dirname = path.dirname.replace(/^Atom.app/, appName);
+		}
+	});
+}
+
 exports.patch = function(opts) {
 	var pass = es.through();
 
 	var src = pass
 		.pipe(removeDefaultApp())
-		.pipe(renameApp(opts))
 		.pipe(patchIcon(opts))
-		.pipe(patchInfoPlist(opts));
+		.pipe(patchInfoPlist(opts))
+		.pipe(renameApp(opts));
 
 	return es.duplex(pass, src);
 }

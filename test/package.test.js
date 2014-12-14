@@ -85,6 +85,7 @@ describe('atomshell', function () {
 						productVersion: '0.0.42'
 				}))
 				.on('data', function (f) {
+					assert(!files[f.relative]);
 					files[f.relative] = f;
 				})
 				.on('error', cb)
@@ -122,6 +123,7 @@ describe('atomshell', function () {
 						productVersion: '0.0.42'
 				}))
 				.on('data', function (f) {
+					assert(!files[f.relative]);
 					files[f.relative] = f;
 				})
 				.on('error', cb)
