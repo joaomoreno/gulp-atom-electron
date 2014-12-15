@@ -12,9 +12,9 @@ exports.getAppPath = function(opts) {
 function removeDefaultApp() {
 	var defaultAppPath = path.join('resources', 'default_app');
 
-	return es.through(function (f) {
+	return es.mapSync(function (f) {
 		if (!util.startsWith(f.relative, defaultAppPath)) {
-			this.emit('data', f);
+			return f;
 		}
 	});
 }

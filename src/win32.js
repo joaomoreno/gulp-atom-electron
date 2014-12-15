@@ -13,11 +13,9 @@ exports.getAppPath = function(opts) {
 };
 
 function patchExecutable(opts) {
-	var regexp = /^resources\/default_app/;
-	return es.through(function (f) {
+	return es.map(function (f, cb) {
 		if (f.relative !== 'atom.exe' || process.platform !== 'win32') {
-			this.emit('data', f);
-			return;
+			return cb(null, f);
 		}
 
 		var that = this;
@@ -51,7 +49,7 @@ function patchExecutable(opts) {
 					fs.unlink(tempPath, function (err) {
 						if (err) { return that.emit('error', err); }
 						
-						that.emit('data', f);
+						cb(null, f);
 					})
 				});
 			});
@@ -62,9 +60,9 @@ function patchExecutable(opts) {
 function removeDefaultApp() {
 	var defaultAppPath = path.join('resources', 'default_app');
 
-	return es.through(function (f) {
+	return es.mapSync(function (f) {
 		if (!util.startsWith(f.relative, defaultAppPath)) {
-			this.emit('data', f);
+			return f;
 		}
 	});
 }

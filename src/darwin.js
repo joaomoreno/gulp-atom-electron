@@ -18,9 +18,9 @@ exports.getAppPath = function(opts) {
 function removeDefaultApp() {
 	var defaultAppPath = path.join('Atom.app', 'Contents', 'Resources', 'default_app');
 
-	return es.through(function (f) {
+	return es.mapSync(function (f) {
 		if (!util.startsWith(f.relative, defaultAppPath)) {
-			this.emit('data', f);
+			return f;
 		}
 	});
 }
@@ -34,9 +34,9 @@ function patchIcon(opts) {
 	var pass = es.through();
 
 	// filter out original icon
-	var src = pass.pipe(es.through(function (f) {
+	var src = pass.pipe(es.mapSync(function (f) {
 		if (f.relative !== iconPath) {
-			this.emit('data', f);
+			return f;
 		}
 	}));
 
@@ -49,7 +49,7 @@ function patchIcon(opts) {
 function patchInfoPlist(opts) {
 	var infoPlistPath = path.join('Atom.app', 'Contents', 'Info.plist');
 
-	return es.through(function (f) {
+	return es.mapSync(function (f) {
 		if (f.relative === infoPlistPath) {
 			var infoPlist = plist.parse(f.contents.toString('utf8'));
 
@@ -72,7 +72,7 @@ function patchInfoPlist(opts) {
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
 		}
 
-		this.emit('data', f);
+		return f;
 	});
 }
 
