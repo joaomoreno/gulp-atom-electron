@@ -76,6 +76,7 @@ function atomshell(opts) {
 	}
 
 	var pass = es.through();
+	pass.pause();
 	var out = es.through();
 
 	var platform = require('./' + opts.platform);
@@ -92,6 +93,7 @@ function atomshell(opts) {
 		var atomshell = vanillaAtomshell(opts)
 			.pipe(platform.patch(opts));
 
+		pass.resume();
 		es.merge(src, atomshell).pipe(out);
 	}
 
