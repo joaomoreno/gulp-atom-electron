@@ -75,35 +75,17 @@ function atomshell(opts) {
 		throw new Error('Missing atom-shell option: productVersion.');
 	}
 
-	var pass = es.through();
-	pass.pause();
-	var out = es.through();
-
 	var platform = require('./' + opts.platform);
+	var pass = es.through();
 
-	function onVersion(err, version) {
-		if (err) { return out.emit('error', err); }
-
-		opts.productVersion = version;
-
-		var src = pass
+	var src = pass
 			.pipe(patchPackageJson(opts))
 			.pipe(moveApp(platform, opts));
 
-		var atomshell = vanillaAtomshell(opts)
-			.pipe(platform.patch(opts));
+	var atomshell = vanillaAtomshell(opts)
+		.pipe(platform.patch(opts));
 
-		pass.resume();
-		es.merge(src, atomshell).pipe(out);
-	}
-
-	if (typeof opts.productVersion === 'function') {
-		opts.productVersion(onVersion);
-	} else {
-		onVersion(null, opts.productVersion);
-	}
-
-	return es.duplex(pass, out);
+	return es.duplex(pass, es.merge(src, atomshell));
 }
 
 atomshell.zfsdest = zfs.dest;
