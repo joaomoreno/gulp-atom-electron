@@ -89,4 +89,5 @@ function atomshell(opts) {
 }
 
 atomshell.zfsdest = zfs.dest;
+atomshell.download = vanillaAtomshell;
 module.exports = atomshell;
