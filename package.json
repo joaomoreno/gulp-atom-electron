@@ -1,6 +1,6 @@
 {
   "name": "gulp-atom-shell",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "gulp plugin for packaging Atom Shell applications",
   "main": "src/index.js",
   "scripts": {
@@ -27,7 +27,7 @@
     "event-stream": "^3.1.7",
     "github-releases": "^0.2.0",
     "gulp-rename": "^1.2.0",
-    "gulp-vinyl-zip": "^0.0.3",
+    "gulp-vinyl-zip": "^0.0.5",
     "mkdirp": "^0.5.0",
     "plist": "^1.1.0",
     "progress": "^1.1.8",
