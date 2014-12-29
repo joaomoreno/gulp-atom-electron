@@ -9,12 +9,13 @@ var gulp = require('gulp');
 var atomshell = require('gulp-atom-shell');
 
 gulp.task('default', function () {
-	return gulp.src('src/**').pipe(atomshell({
-		version: '0.19.4',
-		outputPath: 'build/MyApp',
-		productName: 'MyApp',
-		productVersion: '0.0.1'
-	}));
+	return gulp.src('src/**')
+		.pipe(atomshell({
+			version: '0.19.4',
+			productName: 'MyApp',
+			productVersion: '0.0.1'
+		}))
+		.pipe(atomshell.zfsdest('app.zip'));
 });
 ```
 
@@ -22,7 +23,6 @@ gulp.task('default', function () {
 
 You **must** provide the following options:
 - `version` - the [Atom Shell version](https://github.com/atom/atom-shell/releases) to use
-- `outputPath` - the output path where to place your built app
 - `productName` - the name of your product
 - `productVersion` - the version of your product
 
