@@ -2,7 +2,11 @@
 
 var es = require('event-stream');
 var fs = require('vinyl-fs');
-var zfs = require('gulp-vinyl-zip');
+try {
+	var zfs = require('gulp-vinyl-zip');
+} catch (e) {
+	var zfs = require('gulp-vinyl-yazl');
+}
 var rename = require('gulp-rename');
 var download = require('./download');
 
@@ -23,7 +27,7 @@ function patchPackageJson(opts) {
 			f.contents = new Buffer(JSON.stringify(json), 'utf8');
 			that.emit('data', f);
 		}
-		
+
 		if (typeof opts.productVersion === 'function') {
 			opts.productVersion(function (err, version) {
 				if (err) { return that.emit('err'); }
@@ -37,7 +41,7 @@ function patchPackageJson(opts) {
 
 function moveApp(platform, opts) {
 	var appPath = platform.getAppPath(opts);
-	
+
 	return rename(function (path) {
 		path.dirname = appPath + (path.dirname === '.' ? '' : '/' + path.dirname);
 	});
@@ -59,6 +63,7 @@ function vanillaAtomshell(opts) {
 }
 
 function atomshell(opts) {
+	console.log("options:", opts);
 	if (!opts.version) {
 		throw new Error('Missing atom-shell option: version.');
 	}
@@ -66,11 +71,11 @@ function atomshell(opts) {
 	if (!opts.platform) {
 		throw new Error('Missing atom-shell option: platform.');
 	}
-	
+
 	if (!opts.productName) {
 		throw new Error('Missing atom-shell option: productName.');
 	}
-	
+
 	if (!opts.productVersion) {
 		throw new Error('Missing atom-shell option: productVersion.');
 	}
