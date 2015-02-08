@@ -63,7 +63,6 @@ function vanillaAtomshell(opts) {
 }
 
 function atomshell(opts) {
-	console.log("options:", opts);
 	if (!opts.version) {
 		throw new Error('Missing atom-shell option: version.');
 	}
