@@ -49,9 +49,16 @@ function patchIcon(opts) {
 function patchInfoPlist(opts) {
 	var infoPlistPath = path.join('Atom.app', 'Contents', 'Info.plist');
 
-	return es.mapSync(function (f) {
-		if (f.relative === infoPlistPath) {
-			var infoPlist = plist.parse(f.contents.toString('utf8'));
+	return es.map(function (f, cb) {
+		if (f.relative !== infoPlistPath) {
+			return cb(null, f);
+		}
+
+		var contents = '';
+		f.contents.on('data', function (d) { contents += d; });
+
+		f.contents.on('end', function () {
+			var infoPlist = plist.parse(contents.toString('utf8'));
 
 			infoPlist['CFBundleName'] = opts.productName;
 			infoPlist['CFBundleVersion'] = opts.productVersion;
@@ -70,9 +77,8 @@ function patchInfoPlist(opts) {
 			}
 
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
-		}
-
-		return f;
+			cb(null, f);
+		});
 	});
 }
 
