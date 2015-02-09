@@ -101,7 +101,6 @@ describe('atomshell', function () {
 
 					// executable exists
 					assert(files['TestApp']);
-					assert(files['TestApp'].stat.mode & 100);
 
 					cb();
 				});

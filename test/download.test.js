@@ -1,5 +1,6 @@
 var assert = require('assert');
 var fs = require('fs');
+var path = require('path');
 var atomshell = require('..');
 var download = require('../src/download');
 
@@ -24,7 +25,7 @@ describe('atomshell', function () {
 		atomshell
 			.download({ version: '0.19.5', platform: 'darwin' })
 			.on('data', function (f) {
-				if (f.relative === 'Atom.app/Contents/Info.plist') {
+				if (f.relative === path.join('Atom.app', 'Contents', 'Info.plist')) {
 					didSeeInfoPList = true;
 				}
 			})
