@@ -18,7 +18,6 @@ function patchExecutable(opts) {
 			return cb(null, f);
 		}
 
-		var that = this;
 		var patch = {
 			'version-string': {
 				CompanyName: opts.companyName || 'GitHub, Inc.',
@@ -36,18 +35,18 @@ function patchExecutable(opts) {
 		var tempPath = temp.path();
 
 		fs.writeFile(tempPath, f.contents, function (err) {
-			if (err) { return that.emit('error', err); }
+			if (err) { return cb(err); }
 
 			rcedit(tempPath, patch, function (err) {
-				if (err) { return that.emit('error', err); }
+				if (err) { return cb(err); }
 
 				fs.readFile(tempPath, function (err, data) {
-					if (err) { return that.emit('error', err); }
+					if (err) { return cb(err); }
 
 					f.contents = data;
 
 					fs.unlink(tempPath, function (err) {
-						if (err) { return that.emit('error', err); }
+						if (err) { return cb(err); }
 						
 						cb(null, f);
 					})
