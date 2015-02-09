@@ -33,10 +33,10 @@ function patchExecutable(opts) {
 		}
 
 		var tempPath = temp.path();
-
-		fs.writeFile(tempPath, f.contents, function (err) {
-			if (err) { return cb(err); }
-
+		var ostream = fs.createWriteStream(tempPath);
+		
+		f.contents.pipe(ostream);
+		f.contents.on('end', function () {
 			rcedit(tempPath, patch, function (err) {
 				if (err) { return cb(err); }
 
