@@ -1,6 +1,6 @@
 {
   "name": "gulp-atom-shell",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "gulp plugin for packaging Atom Shell applications",
   "main": "src/index.js",
   "scripts": {
