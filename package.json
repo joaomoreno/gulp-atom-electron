@@ -27,7 +27,7 @@
     "event-stream": "^3.1.7",
     "github-releases": "^0.2.0",
     "gulp-rename": "^1.2.0",
-    "gulp-vinyl-zip": "^0.0.6",
+    "gulp-vinyl-zip": "^1.0.0",
     "mkdirp": "^0.5.0",
     "plist": "^1.1.0",
     "progress": "^1.1.8",
