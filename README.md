@@ -28,6 +28,8 @@ You **must** provide the following options:
 
 The following options are **optional**:
 
+- `arch` - the processor architecture (`ia32`, `x64`)
+
 - **Windows**
 	- `winIcon` - path to an `.ico` file
 	- `companyName` - company name
