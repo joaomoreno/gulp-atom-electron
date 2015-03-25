@@ -10,11 +10,7 @@ var atomshell = require('gulp-atom-shell');
 
 gulp.task('default', function () {
 	return gulp.src('src/**')
-		.pipe(atomshell({
-			version: '0.19.4',
-			productName: 'MyApp',
-			productVersion: '0.0.1'
-		}))
+		.pipe(atomshell({ version: '0.19.4' }))
 		.pipe(atomshell.zfsdest('app.zip'));
 });
 ```
@@ -23,8 +19,6 @@ gulp.task('default', function () {
 
 You **must** provide the following options:
 - `version` - the [Atom Shell version](https://github.com/atom/atom-shell/releases) to use
-- `productName` - the name of your product
-- `productVersion` - the version of your product
 
 The following options are **optional**:
 
@@ -37,7 +31,7 @@ The following options are **optional**:
 	
 - **Darwin**
 	- `darwinIcon` - path to an `.icns` file
-	- `darwinBundleDocumentTypes` - ([reference](https://developer.apple.com/library/ios/documentation/filemanagement/conceptual/documentinteraction_topicsforios/Articles/RegisteringtheFileTypesYourAppSupports.html)) array of dictionaries, each containing the following structure :
+	- `darwinBundleDocumentTypes` - ([reference](https://developer.apple.com/library/ios/documentation/filemanagement/conceptual/documentinteraction_topicsforios/Articles/RegisteringtheFileTypesYourAppSupports.html)) array of dictionaries, each containing the following structure:
 	 - `name` - the `CFBundleTypeName` value
 	 - `role` - the `CFBundleTypeRole` value
 	 - `ostypes` - the `CFBundleTypeOSTypes` value, a `string` array

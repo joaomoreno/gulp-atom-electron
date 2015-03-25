@@ -43,11 +43,9 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-						version: '0.19.2',
-						platform: 'darwin',
-						productName: 'TestApp',
-						productVersion: '0.0.42',
-						darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
+					version: '0.19.2',
+					platform: 'darwin',
+					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -55,15 +53,15 @@ describe('atomshell', function () {
 				})
 				.on('error', cb)
 				.on('end', function () {
-					assert(files['TestApp.app']);
-					assert(files[path.join('TestApp.app', 'Contents', 'Resources', 'app', 'main.js')]);
-					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('TestApp.app', 'Contents', 'Resources', 'default_app')); }));
+					assert(files['FakeTemplateApp.app']);
+					assert(files[path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'app', 'main.js')]);
+					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'default_app')); }));
 
-					var packageJsonPath = path.join('TestApp.app', 'Contents', 'Resources', 'app', 'package.json');
+					var packageJsonPath = path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'app', 'package.json');
 					assert(files[packageJsonPath]);
 					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
-					assert.equal('TestApp', packageJson.name);
-					assert.equal('0.0.42', packageJson.version);
+					assert.equal('FakeTemplateApp', packageJson.name);
+					assert.equal('0.0.1', packageJson.version);
 
 					cb();
 				});
@@ -79,10 +77,8 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-						version: '0.19.2',
-						platform: 'linux',
-						productName: 'TestApp',
-						productVersion: '0.0.42'
+					version: '0.19.2',
+					platform: 'linux'
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -90,17 +86,18 @@ describe('atomshell', function () {
 				})
 				.on('error', cb)
 				.on('end', function () {
+
 					assert(files[path.join('resources', 'app', 'main.js')]);
 					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('resources', 'default_app')); }));
 
 					var packageJsonPath = path.join('resources', 'app', 'package.json');
 					assert(files[packageJsonPath]);
 					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
-					assert.equal('TestApp', packageJson.name);
-					assert.equal('0.0.42', packageJson.version);
+					assert.equal('FakeTemplateApp', packageJson.name);
+					assert.equal('0.0.1', packageJson.version);
 
 					// executable exists
-					assert(files['TestApp']);
+					assert(files['FakeTemplateApp']);
 
 					cb();
 				});
@@ -116,10 +113,8 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-						version: '0.19.2',
-						platform: 'win32',
-						productName: 'TestApp',
-						productVersion: '0.0.42'
+					version: '0.19.2',
+					platform: 'win32'
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -133,10 +128,10 @@ describe('atomshell', function () {
 					var packageJsonPath = path.join('resources', 'app', 'package.json');
 					assert(files[packageJsonPath]);
 					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
-					assert.equal('TestApp', packageJson.name);
-					assert.equal('0.0.42', packageJson.version);
+					assert.equal('FakeTemplateApp', packageJson.name);
+					assert.equal('0.0.1', packageJson.version);
 
-					assert(files['TestApp.exe']);
+					assert(files['FakeTemplateApp.exe']);
 
 					cb();
 				});

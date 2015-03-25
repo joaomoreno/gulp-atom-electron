@@ -1,39 +1,11 @@
 'use strict';
 
+var util = require('util');
 var es = require('event-stream');
 var fs = require('vinyl-fs');
 var zfs = require('gulp-vinyl-zip');
 var rename = require('gulp-rename');
 var download = require('./download');
-
-function patchPackageJson(opts) {
-	return es.through(function (f) {
-		var that = this;
-
-		if (f.relative !== 'package.json') {
-			this.emit('data', f);
-			return;
-		}
-
-		var json = JSON.parse(f.contents.toString('utf8'));
-		json.name = opts.productName;
-
-		function onVersion(version) {
-			json.version = opts.productVersion;
-			f.contents = new Buffer(JSON.stringify(json), 'utf8');
-			that.emit('data', f);
-		}
-		
-		if (typeof opts.productVersion === 'function') {
-			opts.productVersion(function (err, version) {
-				if (err) { return that.emit('err'); }
-				onVersion(version);
-			});
-		} else {
-			onVersion(opts.productVersion);
-		}
-	});
-}
 
 function moveApp(platform, opts) {
 	var appPath = platform.getAppPath(opts);
@@ -43,7 +15,7 @@ function moveApp(platform, opts) {
 	});
 }
 
-function vanillaAtomshell(opts) {
+function downloadAtomshell(opts) {
 	var stream = es.through();
 
 	download({
@@ -58,6 +30,48 @@ function vanillaAtomshell(opts) {
 	return stream;
 }
 
+function _atomshell(opts) {
+	var pass = es.through();
+	var result = es.through();
+
+	var buffer = [];
+
+	var src = pass.pipe(es.through(function (f) {
+		if (!buffer) {
+			return;
+		}
+
+		buffer.push(f);
+
+		if (f.relative !== 'package.json') {
+			return;
+		}
+
+		var json = JSON.parse(f.contents.toString('utf8'));
+		opts = util._extend({}, opts);
+
+		// We need to extract the application's name and version
+		// in order to feed it to the various platforms build
+		// process.
+		opts.productName = json.name;
+		opts.productVersion = json.version;
+
+		var platform = require('./' + opts.platform);
+
+		var sources = es.merge(es.readArray(buffer), pass)
+			.pipe(moveApp(platform, opts));
+
+		var atomshell = downloadAtomshell(opts)
+			.pipe(platform.patch(opts));
+
+		es.merge(sources, atomshell).pipe(result);
+
+		buffer = null;
+	}));
+
+	return es.duplex(pass, es.merge(src, result));
+}
+
 function atomshell(opts) {
 	if (!opts.version) {
 		throw new Error('Missing atom-shell option: version.');
@@ -66,28 +80,18 @@ function atomshell(opts) {
 	if (!opts.platform) {
 		throw new Error('Missing atom-shell option: platform.');
 	}
-	
-	if (!opts.productName) {
-		throw new Error('Missing atom-shell option: productName.');
-	}
-	
-	if (!opts.productVersion) {
-		throw new Error('Missing atom-shell option: productVersion.');
+
+	if (opts.productName) {
+		console.warn('productName is deprecated. The application\'s name will be picked up automatically from package.json.');
 	}
 
-	var platform = require('./' + opts.platform);
-	var pass = es.through();
+	if (opts.productVersion) {
+		console.warn('productVersion is deprecated. The application\'s version will be picked up automatically from package.json.');
+	}
 
-	var src = pass
-			.pipe(patchPackageJson(opts))
-			.pipe(moveApp(platform, opts));
-
-	var atomshell = vanillaAtomshell(opts)
-		.pipe(platform.patch(opts));
-
-	return es.duplex(pass, es.merge(src, atomshell));
+	return _atomshell(opts);
 }
 
 atomshell.zfsdest = zfs.dest;
-atomshell.download = vanillaAtomshell;
+atomshell.download = downloadAtomshell;
 module.exports = atomshell;
