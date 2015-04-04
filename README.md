@@ -10,7 +10,10 @@ var atomshell = require('gulp-atom-shell');
 
 gulp.task('default', function () {
 	return gulp.src('src/**')
-		.pipe(atomshell({ version: '0.19.4' }))
+		.pipe(atomshell({ 
+				  version: '0.19.4',
+				  platform: 'darwin'
+		 }))
 		.pipe(atomshell.zfsdest('app.zip'));
 });
 ```
@@ -19,6 +22,7 @@ gulp.task('default', function () {
 
 You **must** provide the following options:
 - `version` - the [Atom Shell version](https://github.com/atom/atom-shell/releases) to use
+- `platform` - kind of OS (`darwin`, `linux`, `win32`)
 
 The following options are **optional**:
 
