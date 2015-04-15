@@ -30,7 +30,7 @@ function patchIcon(opts) {
 		return es.through();
 	}
 
-	var iconPath = path.join('Atom.app', 'Contents', 'Resources', 'atom.icns');
+	var iconPath = path.join('Atom.app', 'Contents', 'Resources', opts.productName + '.icns');
 	var pass = es.through();
 
 	// filter out original icon
@@ -62,6 +62,7 @@ function patchInfoPlist(opts) {
 
 			infoPlist['CFBundleName'] = opts.productName;
 			infoPlist['CFBundleVersion'] = opts.productVersion;
+			infoPlist['CFBundleIconFile'] = opts.productName + '.icns';
 
 			if (opts.darwinBundleDocumentTypes) {
 				infoPlist['CFBundleDocumentTypes'] = (infoPlist['CFBundleDocumentTypes'] || [])
