@@ -61,7 +61,7 @@ function patchInfoPlist(opts) {
 			var infoPlist = plist.parse(contents.toString('utf8'));
 
 			infoPlist['CFBundleName'] = opts.productName;
-			infoPlist['CFBundleDisplayName'] = opts.productName;
+			infoPlist['CFBundleDisplayName'] = opts.productDisplayName || opts.productName;
 			infoPlist['CFBundleVersion'] = opts.productVersion;
 			infoPlist['CFBundleIconFile'] = opts.productName + '.icns';
 
