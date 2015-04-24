@@ -21,7 +21,8 @@ function downloadAtomshell(opts) {
 	download({
 		version: opts.version,
 		platform: opts.platform,
-		arch: opts.arch
+		arch: opts.arch,
+		token: opts.token
 	}, function(err, vanilla) {
 		if (err) { return stream.emit('error', err); }
 		zfs.src(vanilla).pipe(stream);

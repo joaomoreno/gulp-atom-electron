@@ -30,7 +30,7 @@ function cache(assetName, onMiss, cb) {
 }
 
 module.exports = function (opts, cb) {
-	var github = new GitHub({ repo: 'atom/electron' });
+	var github = new GitHub({ repo: 'atom/electron', token: opts.token });
 
 	if (!opts.version) {
 		return cb(new Error('Missing version'));

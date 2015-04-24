@@ -26,6 +26,8 @@ You **must** provide the following options:
 
 The following options are **optional**:
 
+- `token` - GitHub access token(to avoid request limit. You can grab it [here](https://github.com/settings/tokens))
+
 - `arch` - the processor architecture (`ia32`, `x64`)
 
 - **Windows**
