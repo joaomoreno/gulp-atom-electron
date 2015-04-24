@@ -30,12 +30,14 @@ function patchIcon(opts) {
 		return es.through();
 	}
 
-	var iconPath = path.join('Atom.app', 'Contents', 'Resources', opts.productName + '.icns');
+	var resourcesPath = path.join('Atom.app', 'Contents', 'Resources');
+	var originalIconPath = path.join(resourcesPath, 'atom.icns');
+	var iconPath = path.join(resourcesPath, opts.productName + '.icns');
 	var pass = es.through();
 
 	// filter out original icon
 	var src = pass.pipe(es.mapSync(function (f) {
-		if (f.relative !== iconPath) {
+		if (f.relative !== originalIconPath) {
 			return f;
 		}
 	}));
