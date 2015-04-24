@@ -8,7 +8,7 @@ var rename = require('gulp-rename');
 var util = require('./util');
 
 function getAppName(opts) {
-	return opts.productName + '.app';
+	return (opts.productAppName || opts.productName) + '.app';
 };
 
 exports.getAppPath = function(opts) {
@@ -90,7 +90,7 @@ function renameApp(opts) {
 	return rename(function (path) {
 		// The app folder itself looks like a file
 		if (path.dirname === '.' && path.basename === 'Atom' && path.extname === '.app') {
-			path.basename = opts.productName;
+			path.basename = opts.productAppName || opts.productName;
 		} else {
 			path.dirname = path.dirname.replace(/^Atom.app/, appName);
 		}
