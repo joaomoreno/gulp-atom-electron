@@ -21,21 +21,21 @@ describe('atomshell', function () {
 
 		assert.throws(function () {
 			atomshell({
-				version: '0.19.2',
+				version: '0.25.1',
 				productVersion: '0.0.1'
 			});
 		});
 
 		assert.throws(function () {
 			atomshell({
-				version: '0.19.2',
+				version: '0.25.1',
 				productName: 'TestApp'
 			});
 		});
 	});
 
 	describe('darwin', function () {
-		it('should copy app files and patch Atom', function(cb) {
+		it('should copy app files and patch Electron', function(cb) {
 			this.timeout(1000 * 60 * 5 /* 5 minutes */);
 
 			var files = {};
@@ -43,8 +43,9 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-					version: '0.19.2',
+					version: '0.25.1',
 					platform: 'darwin',
+					token: process.env.ATOMSHELL_GITHUB_TOKEN,
 					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
 				}))
 				.on('data', function (f) {
@@ -69,7 +70,7 @@ describe('atomshell', function () {
 	});
 
 	describe('linux', function () {
-		it('should copy app files and patch Atom', function(cb) {
+		it('should copy app files and patch Electron', function(cb) {
 			this.timeout(1000 * 60 * 5 /* 5 minutes */);
 
 			var files = {};
@@ -77,8 +78,9 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-					version: '0.19.2',
-					platform: 'linux'
+					version: '0.25.1',
+					platform: 'linux',
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -105,7 +107,7 @@ describe('atomshell', function () {
 	});
 
 	describe('win32', function () {
-		it('should copy app files and patch Atom', function(cb) {
+		it('should copy app files and patch Electron', function(cb) {
 			this.timeout(1000 * 60 * 5 /* 5 minutes */);
 
 			var files = {};
@@ -113,8 +115,9 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-					version: '0.19.2',
-					platform: 'win32'
+					version: '0.25.1',
+					platform: 'win32',
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
