@@ -16,7 +16,7 @@ exports.getAppPath = function(opts) {
 };
 
 function removeDefaultApp() {
-	var defaultAppPath = path.join('Atom.app', 'Contents', 'Resources', 'default_app');
+	var defaultAppPath = path.join('Electron.app', 'Contents', 'Resources', 'default_app');
 
 	return es.mapSync(function (f) {
 		if (!util.startsWith(f.relative, defaultAppPath)) {
@@ -30,7 +30,7 @@ function patchIcon(opts) {
 		return es.through();
 	}
 
-	var resourcesPath = path.join('Atom.app', 'Contents', 'Resources');
+	var resourcesPath = path.join('Electron.app', 'Contents', 'Resources');
 	var originalIconPath = path.join(resourcesPath, 'atom.icns');
 	var iconPath = path.join(resourcesPath, opts.productName + '.icns');
 	var pass = es.through();
@@ -49,7 +49,7 @@ function patchIcon(opts) {
 }
 
 function patchInfoPlist(opts) {
-	var infoPlistPath = path.join('Atom.app', 'Contents', 'Info.plist');
+	var infoPlistPath = path.join('Electron.app', 'Contents', 'Info.plist');
 
 	return es.map(function (f, cb) {
 		if (f.relative !== infoPlistPath) {
@@ -91,10 +91,10 @@ function renameApp(opts) {
 
 	return rename(function (path) {
 		// The app folder itself looks like a file
-		if (path.dirname === '.' && path.basename === 'Atom' && path.extname === '.app') {
+		if (path.dirname === '.' && path.basename === 'Electron' && path.extname === '.app') {
 			path.basename = opts.productAppName || opts.productName;
 		} else {
-			path.dirname = path.dirname.replace(/^Atom.app/, appName);
+			path.dirname = path.dirname.replace(/^Electron.app/, appName);
 		}
 	});
 }
@@ -109,4 +109,4 @@ exports.patch = function(opts) {
 		.pipe(renameApp(opts));
 
 	return es.duplex(pass, src);
-}
+};
