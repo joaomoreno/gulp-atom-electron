@@ -21,7 +21,7 @@ function removeDefaultApp() {
 
 function renameApp(opts) {
 	return rename(function (path) {
-		if (path.dirname === '.' && path.basename === 'atom' && path.extname === '') {
+		if (path.dirname === '.' && path.basename === 'electron' && path.extname === '') {
 			path.basename = opts.productName;
 		}
 	});

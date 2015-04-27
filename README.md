@@ -10,8 +10,8 @@ var atomshell = require('gulp-atom-shell');
 
 gulp.task('default', function () {
 	return gulp.src('src/**')
-		.pipe(atomshell({ 
-				  version: '0.19.4',
+		.pipe(atomshell({
+				  version: '0.25.1',
 				  platform: 'darwin'
 		 }))
 		.pipe(atomshell.zfsdest('app.zip'));

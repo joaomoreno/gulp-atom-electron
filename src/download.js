@@ -52,7 +52,7 @@ module.exports = function (opts, cb) {
 	}
 
 	var version = 'v' + opts.version;
-	var assetName = ['atom-shell', version, platform, arch].join('-') + '.zip';
+	var assetName = ['electron', version, platform, arch].join('-') + '.zip';
 
 	function download(assetPath, cb) {
 		github.getReleases({ tag_name: version }, function (err, releases) {

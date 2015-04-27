@@ -14,7 +14,7 @@ exports.getAppPath = function(opts) {
 
 function patchExecutable(opts) {
 	return es.map(function (f, cb) {
-		if (f.relative !== 'atom.exe' || process.platform !== 'win32') {
+		if (f.relative !== 'electron.exe' || process.platform !== 'win32') {
 			return cb(null, f);
 		}
 
@@ -68,7 +68,7 @@ function removeDefaultApp() {
 
 function renameApp(opts) {
 	return rename(function (path) {
-		if (path.dirname === '.' && path.basename === 'atom' && path.extname === '.exe') {
+		if (path.dirname === '.' && path.basename === 'electron' && path.extname === '.exe') {
 			path.basename = opts.productName;
 		}
 	});
