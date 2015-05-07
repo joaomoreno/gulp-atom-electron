@@ -9,14 +9,14 @@ var util = require('./util');
 
 function getAppName(opts) {
 	return (opts.productAppName || opts.productName) + '.app';
-};
+}
 
 exports.getAppPath = function(opts) {
 	return getAppName(opts) + '/Contents/Resources/app';
 };
 
-function removeDefaultApp() {
-	var defaultAppPath = path.join('Atom.app', 'Contents', 'Resources', 'default_app');
+function removeDefaultApp(opts) {
+	var defaultAppPath = path.join(util.capitalizeFirstLetter(opts.executableName) + '.app', 'Contents', 'Resources', 'default_app');
 
 	return es.mapSync(function (f) {
 		if (!util.startsWith(f.relative, defaultAppPath)) {
@@ -30,7 +30,7 @@ function patchIcon(opts) {
 		return es.through();
 	}
 
-	var resourcesPath = path.join('Atom.app', 'Contents', 'Resources');
+	var resourcesPath = path.join(util.capitalizeFirstLetter(opts.executableName) + '.app', 'Contents', 'Resources');
 	var originalIconPath = path.join(resourcesPath, 'atom.icns');
 	var iconPath = path.join(resourcesPath, opts.productName + '.icns');
 	var pass = es.through();
@@ -49,7 +49,7 @@ function patchIcon(opts) {
 }
 
 function patchInfoPlist(opts) {
-	var infoPlistPath = path.join('Atom.app', 'Contents', 'Info.plist');
+	var infoPlistPath = path.join(util.capitalizeFirstLetter(opts.executableName) + '.app', 'Contents', 'Info.plist');
 
 	return es.map(function (f, cb) {
 		if (f.relative !== infoPlistPath) {
@@ -88,13 +88,15 @@ function patchInfoPlist(opts) {
 
 function renameApp(opts) {
 	var appName = getAppName(opts);
+	var executableName = util.capitalizeFirstLetter(opts.executableName);
+	var regex = new RegExp('^' + executableName + '.app');
 
 	return rename(function (path) {
 		// The app folder itself looks like a file
-		if (path.dirname === '.' && path.basename === 'Atom' && path.extname === '.app') {
+		if (path.dirname === '.' && path.basename === executableName && path.extname === '.app') {
 			path.basename = opts.productAppName || opts.productName;
 		} else {
-			path.dirname = path.dirname.replace(/^Atom.app/, appName);
+			path.dirname = path.dirname.replace(regex, appName);
 		}
 	});
 }
@@ -103,10 +105,10 @@ exports.patch = function(opts) {
 	var pass = es.through();
 
 	var src = pass
-		.pipe(removeDefaultApp())
+		.pipe(removeDefaultApp(opts))
 		.pipe(patchIcon(opts))
 		.pipe(patchInfoPlist(opts))
 		.pipe(renameApp(opts));
 
 	return es.duplex(pass, src);
-}
+};
