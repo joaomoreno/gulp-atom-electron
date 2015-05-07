@@ -45,7 +45,41 @@ describe('atomshell', function () {
 				.pipe(atomshell({
 					version: '0.19.2',
 					platform: 'darwin',
-					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
+					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns'),
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
+				}))
+				.on('data', function (f) {
+					assert(!files[f.relative]);
+					files[f.relative] = f;
+				})
+				.on('error', cb)
+				.on('end', function () {
+					assert(files['FakeTemplateApp.app']);
+					assert(files[path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'app', 'main.js')]);
+					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'default_app')); }));
+
+					var packageJsonPath = path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'app', 'package.json');
+					assert(files[packageJsonPath]);
+					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
+					assert.equal('FakeTemplateApp', packageJson.name);
+					assert.equal('0.0.1', packageJson.version);
+
+					cb();
+				});
+		});
+
+		it('should copy app files and patch Electron', function(cb) {
+			this.timeout(1000 * 60 * 5 /* 5 minutes */);
+
+			var files = {};
+			process.chdir(__dirname);
+
+			vfs.src('src/**/*')
+				.pipe(atomshell({
+					version: '0.25.2',
+					platform: 'darwin',
+					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns'),
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -78,7 +112,43 @@ describe('atomshell', function () {
 			vfs.src('src/**/*')
 				.pipe(atomshell({
 					version: '0.19.2',
-					platform: 'linux'
+					platform: 'linux',
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
+				}))
+				.on('data', function (f) {
+					assert(!files[f.relative]);
+					files[f.relative] = f;
+				})
+				.on('error', cb)
+				.on('end', function () {
+
+					assert(files[path.join('resources', 'app', 'main.js')]);
+					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('resources', 'default_app')); }));
+
+					var packageJsonPath = path.join('resources', 'app', 'package.json');
+					assert(files[packageJsonPath]);
+					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
+					assert.equal('FakeTemplateApp', packageJson.name);
+					assert.equal('0.0.1', packageJson.version);
+
+					// executable exists
+					assert(files['FakeTemplateApp']);
+
+					cb();
+				});
+		});
+
+		it('should copy app files and patch Electron', function(cb) {
+			this.timeout(1000 * 60 * 5 /* 5 minutes */);
+
+			var files = {};
+			process.chdir(__dirname);
+
+			vfs.src('src/**/*')
+				.pipe(atomshell({
+					version: '0.25.2',
+					platform: 'linux',
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -114,7 +184,41 @@ describe('atomshell', function () {
 			vfs.src('src/**/*')
 				.pipe(atomshell({
 					version: '0.19.2',
-					platform: 'win32'
+					platform: 'win32',
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
+				}))
+				.on('data', function (f) {
+					assert(!files[f.relative]);
+					files[f.relative] = f;
+				})
+				.on('error', cb)
+				.on('end', function () {
+					assert(files[path.join('resources', 'app', 'main.js')]);
+					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('resources', 'default_app')); }));
+
+					var packageJsonPath = path.join('resources', 'app', 'package.json');
+					assert(files[packageJsonPath]);
+					var packageJson = JSON.parse(files[packageJsonPath].contents.toString('utf8'));
+					assert.equal('FakeTemplateApp', packageJson.name);
+					assert.equal('0.0.1', packageJson.version);
+
+					assert(files['FakeTemplateApp.exe']);
+
+					cb();
+				});
+		});
+
+		it('should copy app files and patch Atom', function(cb) {
+			this.timeout(1000 * 60 * 5 /* 5 minutes */);
+
+			var files = {};
+			process.chdir(__dirname);
+
+			vfs.src('src/**/*')
+				.pipe(atomshell({
+					version: '0.25.2',
+					platform: 'win32',
+					token: process.env.ATOMSHELL_GITHUB_TOKEN
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);

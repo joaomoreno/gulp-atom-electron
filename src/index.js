@@ -6,6 +6,7 @@ var fs = require('vinyl-fs');
 var zfs = require('gulp-vinyl-zip');
 var rename = require('gulp-rename');
 var download = require('./download');
+var semver = require('semver');
 
 function moveApp(platform, opts) {
 	var appPath = platform.getAppPath(opts);
@@ -22,7 +23,9 @@ function downloadAtomshell(opts) {
 		version: opts.version,
 		platform: opts.platform,
 		arch: opts.arch,
-		token: opts.token
+		token: opts.token,
+		packageName: opts.packageName,
+		executableName: opts.executableName
 	}, function(err, vanilla) {
 		if (err) { return stream.emit('error', err); }
 		zfs.src(vanilla).pipe(stream);
@@ -56,6 +59,11 @@ function _atomshell(opts) {
 		// process.
 		opts.productName = json.name;
 		opts.productVersion = json.version;
+
+		// atom-shell was renamed to Electron, since 0.24.0
+		var isElectron = semver.gte(opts.version, '0.24.0');
+		opts.executableName = isElectron ? 'electron' : 'atom';
+		opts.packageName = isElectron ? 'electron' : 'atom-shell';
 
 		var platform = require('./' + opts.platform);
 

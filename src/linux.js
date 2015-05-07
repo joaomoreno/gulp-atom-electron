@@ -20,8 +20,10 @@ function removeDefaultApp() {
 }
 
 function renameApp(opts) {
+	var executableName = opts.executableName;
+
 	return rename(function (path) {
-		if (path.dirname === '.' && path.basename === 'atom' && path.extname === '') {
+		if (path.dirname === '.' && path.basename === executableName && path.extname === '') {
 			path.basename = opts.productName;
 		}
 	});

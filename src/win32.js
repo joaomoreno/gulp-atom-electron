@@ -13,8 +13,9 @@ exports.getAppPath = function(opts) {
 };
 
 function patchExecutable(opts) {
+	var executableName = opts.executableName + '.exe';
 	return es.map(function (f, cb) {
-		if (f.relative !== 'atom.exe' || process.platform !== 'win32') {
+		if (f.relative !== executableName || process.platform !== 'win32') {
 			return cb(null, f);
 		}
 
@@ -67,8 +68,9 @@ function removeDefaultApp() {
 }
 
 function renameApp(opts) {
+	var executableName = opts.executableName;
 	return rename(function (path) {
-		if (path.dirname === '.' && path.basename === 'atom' && path.extname === '.exe') {
+		if (path.dirname === '.' && path.basename === executableName && path.extname === '.exe') {
 			path.basename = opts.productName;
 		}
 	});
