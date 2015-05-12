@@ -67,6 +67,8 @@ function patchInfoPlist(opts) {
 			infoPlist['CFBundleName'] = opts.productName;
 			infoPlist['CFBundleDisplayName'] = opts.productDisplayName || opts.productName;
 			infoPlist['CFBundleVersion'] = opts.productVersion;
+			infoPlist['CFBundleShortVersionString'] = opts.productVersion;
+			infoPlist['NSHumanReadableCopyright'] = opts.copyright;
 			infoPlist['CFBundleIconFile'] = opts.productName + '.icns';
 
 			if (opts.darwinBundleDocumentTypes) {
