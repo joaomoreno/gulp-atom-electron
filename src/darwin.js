@@ -62,6 +62,8 @@ function patchInfoPlist(opts) {
 		f.contents.on('end', function () {
 			var infoPlist = plist.parse(contents.toString('utf8'));
 
+			infoPlist['CFBundleIdentifier'] = opts.darwinBundleIdentifier;
+			infoPlist['LSApplicationCategoryType'] = opts.darwinApplicationCategoryType;
 			infoPlist['CFBundleName'] = opts.productName;
 			infoPlist['CFBundleDisplayName'] = opts.productDisplayName || opts.productName;
 			infoPlist['CFBundleVersion'] = opts.productVersion;
