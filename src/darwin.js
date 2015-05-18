@@ -5,18 +5,27 @@ var plist = require('plist');
 var es = require('event-stream');
 var vfs = require('vinyl-fs');
 var rename = require('gulp-rename');
+var semver = require('semver');
 var util = require('./util');
+
+function getOriginalAppName(opts) {
+	return semver.gte(opts.version, '0.24.0') ? 'Electron' : 'Atom';
+}
+
+function getOriginalAppFullName(opts) {
+	return getOriginalAppName(opts) + '.app';
+}
 
 function getAppName(opts) {
 	return (opts.productAppName || opts.productName) + '.app';
-};
+}
 
 exports.getAppPath = function(opts) {
 	return getAppName(opts) + '/Contents/Resources/app';
 };
 
-function removeDefaultApp() {
-	var defaultAppPath = path.join('Atom.app', 'Contents', 'Resources', 'default_app');
+function removeDefaultApp(opts) {
+	var defaultAppPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Resources', 'default_app');
 
 	return es.mapSync(function (f) {
 		if (!util.startsWith(f.relative, defaultAppPath)) {
@@ -30,7 +39,7 @@ function patchIcon(opts) {
 		return es.through();
 	}
 
-	var resourcesPath = path.join('Atom.app', 'Contents', 'Resources');
+	var resourcesPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Resources');
 	var originalIconPath = path.join(resourcesPath, 'atom.icns');
 	var iconPath = path.join(resourcesPath, opts.productName + '.icns');
 	var pass = es.through();
@@ -49,7 +58,7 @@ function patchIcon(opts) {
 }
 
 function patchInfoPlist(opts) {
-	var infoPlistPath = path.join('Atom.app', 'Contents', 'Info.plist');
+	var infoPlistPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Info.plist');
 
 	return es.map(function (f, cb) {
 		if (f.relative !== infoPlistPath) {
@@ -87,14 +96,16 @@ function patchInfoPlist(opts) {
 }
 
 function renameApp(opts) {
+	var originalAppName = getOriginalAppName(opts);
+	var originalAppNameRegexp = new RegExp('^' + getOriginalAppFullName(opts));
 	var appName = getAppName(opts);
 
 	return rename(function (path) {
 		// The app folder itself looks like a file
-		if (path.dirname === '.' && path.basename === 'Atom' && path.extname === '.app') {
+		if (path.dirname === '.' && path.basename === originalAppName && path.extname === '.app') {
 			path.basename = opts.productAppName || opts.productName;
 		} else {
-			path.dirname = path.dirname.replace(/^Atom.app/, appName);
+			path.dirname = path.dirname.replace(originalAppNameRegexp, appName);
 		}
 	});
 }
@@ -103,10 +114,10 @@ exports.patch = function(opts) {
 	var pass = es.through();
 
 	var src = pass
-		.pipe(removeDefaultApp())
+		.pipe(removeDefaultApp(opts))
 		.pipe(patchIcon(opts))
 		.pipe(patchInfoPlist(opts))
 		.pipe(renameApp(opts));
 
 	return es.duplex(pass, src);
-}
+};

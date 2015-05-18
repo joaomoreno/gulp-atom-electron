@@ -6,6 +6,7 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var GitHub = require('github-releases');
 var ProgressBar = require('progress');
+var semver = require('semver');
 
 var cachePath = path.join(os.tmpdir(), 'gulp-atom-shell-cache');
 mkdirp.sync(cachePath);
@@ -27,6 +28,10 @@ function cache(assetName, onMiss, cb) {
 			});
 		});
 	});
+}
+
+function getAssetName(opts) {
+	return semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell';
 }
 
 module.exports = function (opts, cb) {
@@ -52,7 +57,7 @@ module.exports = function (opts, cb) {
 	}
 
 	var version = 'v' + opts.version;
-	var assetName = ['atom-shell', version, platform, arch].join('-') + '.zip';
+	var assetName = [getAssetName(opts), version, platform, arch].join('-') + '.zip';
 
 	function download(assetPath, cb) {
 		github.getReleases({ tag_name: version }, function (err, releases) {

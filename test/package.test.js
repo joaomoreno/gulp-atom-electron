@@ -43,7 +43,7 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-					version: '0.19.2',
+					version: '0.26.0',
 					platform: 'darwin',
 					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
 				}))
@@ -77,7 +77,7 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-					version: '0.19.2',
+					version: '0.26.0',
 					platform: 'linux'
 				}))
 				.on('data', function (f) {
@@ -113,7 +113,7 @@ describe('atomshell', function () {
 
 			vfs.src('src/**/*')
 				.pipe(atomshell({
-					version: '0.19.2',
+					version: '0.26.0',
 					platform: 'win32'
 				}))
 				.on('data', function (f) {

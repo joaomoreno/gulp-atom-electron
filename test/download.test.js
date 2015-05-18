@@ -35,4 +35,21 @@ describe('atomshell', function () {
 				cb();
 			});
 	});
+	
+	it('should download electron', function(cb) {
+		var didSeeInfoPList = false;
+
+		atomshell
+			.download({ version: '0.24.0', platform: 'darwin' })
+			.on('data', function (f) {
+				if (f.relative === path.join('Electron.app', 'Contents', 'Info.plist')) {
+					didSeeInfoPList = true;
+				}
+			})
+			.on('error', cb)
+			.on('end', function () {
+				assert(didSeeInfoPList);
+				cb();
+			});
+	});
 });

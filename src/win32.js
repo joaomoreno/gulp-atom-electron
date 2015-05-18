@@ -6,7 +6,16 @@ var es = require('event-stream');
 var rename = require('gulp-rename');
 var temp = require('temp').track();
 var rcedit = require('rcedit');
+var semver = require('semver');
 var util = require('./util');
+
+function getOriginalAppName(opts) {
+	return semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom';
+}
+
+function getOriginalAppFullName(opts) {
+	return getOriginalAppName(opts) + '.exe';
+}
 
 exports.getAppPath = function(opts) {
 	return 'resources/app';
@@ -14,7 +23,7 @@ exports.getAppPath = function(opts) {
 
 function patchExecutable(opts) {
 	return es.map(function (f, cb) {
-		if (f.relative !== 'atom.exe' || process.platform !== 'win32') {
+		if (f.relative !== getOriginalAppFullName(opts) || process.platform !== 'win32') {
 			return cb(null, f);
 		}
 
@@ -68,7 +77,7 @@ function removeDefaultApp() {
 
 function renameApp(opts) {
 	return rename(function (path) {
-		if (path.dirname === '.' && path.basename === 'atom' && path.extname === '.exe') {
+		if (path.dirname === '.' && path.basename === getOriginalAppName(opts) && path.extname === '.exe') {
 			path.basename = opts.productName;
 		}
 	});
