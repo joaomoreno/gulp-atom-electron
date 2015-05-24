@@ -1,4 +1,4 @@
-# gulp-electron
+# gulp-atom-electron
 
 [![Build Status](https://travis-ci.org/joaomoreno/gulp-atom-electron.svg?branch=master)](https://travis-ci.org/joaomoreno/gulp-atom-electron)
 
