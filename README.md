@@ -2,6 +2,12 @@
 
 [![Build Status](https://travis-ci.org/joaomoreno/gulp-electron.svg?branch=master)](https://travis-ci.org/joaomoreno/gulp-electron)
 
+### Installation
+
+```bash
+npm install --save gulp-electron
+```
+
 ### Usage
 
 ```javascript
