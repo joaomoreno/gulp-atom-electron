@@ -8,7 +8,7 @@ var GitHub = require('github-releases');
 var ProgressBar = require('progress');
 var semver = require('semver');
 
-var cachePath = path.join(os.tmpdir(), 'gulp-atom-shell-cache');
+var cachePath = path.join(os.tmpdir(), 'gulp-electron-cache');
 mkdirp.sync(cachePath);
 
 function cache(assetName, onMiss, cb) {

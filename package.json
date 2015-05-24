@@ -1,28 +1,29 @@
 {
-  "name": "gulp-atom-shell",
-  "version": "0.10.0",
-  "description": "gulp plugin for packaging Atom Shell applications",
+  "name": "gulp-electron",
+  "version": "0.11.0",
+  "description": "gulp plugin for packaging Electron applications",
   "main": "src/index.js",
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/joaomoreno/gulp-atom-shell.git"
+    "url": "https://github.com/joaomoreno/gulp-electron.git"
   },
   "keywords": [
     "gulpplugin",
     "atom",
     "shell",
     "atom-shell",
+    "electron",
     "github"
   ],
   "author": "João Moreno",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/joaomoreno/gulp-atom-shell/issues"
+    "url": "https://github.com/joaomoreno/gulp-electron/issues"
   },
-  "homepage": "https://github.com/joaomoreno/gulp-atom-shell",
+  "homepage": "https://github.com/joaomoreno/gulp-electron",
   "dependencies": {
     "event-stream": "^3.1.7",
     "github-releases": "^0.2.0",

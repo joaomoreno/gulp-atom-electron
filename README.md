@@ -1,27 +1,27 @@
-# gulp-atom-shell
+# gulp-electron
 
-[![Build Status](https://travis-ci.org/joaomoreno/gulp-atom-shell.svg?branch=master)](https://travis-ci.org/joaomoreno/gulp-atom-shell)
+[![Build Status](https://travis-ci.org/joaomoreno/gulp-electron.svg?branch=master)](https://travis-ci.org/joaomoreno/gulp-electron)
 
 ### Usage
 
 ```javascript
 var gulp = require('gulp');
-var atomshell = require('gulp-atom-shell');
+var electron = require('gulp-electron');
 
 gulp.task('default', function () {
 	return gulp.src('src/**')
-		.pipe(atomshell({ 
+		.pipe(electron({ 
 				  version: '0.19.4',
 				  platform: 'darwin'
 		 }))
-		.pipe(atomshell.zfsdest('app.zip'));
+		.pipe(electron.zfsdest('app.zip'));
 });
 ```
 
 ### Options
 
 You **must** provide the following options:
-- `version` - the [Atom Shell version](https://github.com/atom/atom-shell/releases) to use
+- `version` - the [Electron version](https://github.com/atom/electron/releases) to use
 - `platform` - kind of OS (`darwin`, `linux`, `win32`)
 
 The following options are **optional**:

@@ -3,31 +3,31 @@
 var assert = require('assert');
 var path = require('path');
 var vfs = require('vinyl-fs');
-var atomshell = require('../');
+var electron = require('../');
 var util = require('../src/util');
 
-describe('atomshell', function () {
+describe('electron', function () {
 	it('should warn about missing options', function() {
 		assert.throws(function () {
-			atomshell();
+			electron();
 		});
 
 		assert.throws(function () {
-			atomshell({
+			electron({
 				productName: 'TestApp',
 				productVersion: '0.0.1'
 			});
 		});
 
 		assert.throws(function () {
-			atomshell({
+			electron({
 				version: '0.19.2',
 				productVersion: '0.0.1'
 			});
 		});
 
 		assert.throws(function () {
-			atomshell({
+			electron({
 				version: '0.19.2',
 				productName: 'TestApp'
 			});
@@ -35,14 +35,14 @@ describe('atomshell', function () {
 	});
 
 	describe('darwin', function () {
-		it('should copy app files and patch Atom', function(cb) {
+		it('should copy app files and patch Electron', function(cb) {
 			this.timeout(1000 * 60 * 5 /* 5 minutes */);
 
 			var files = {};
 			process.chdir(__dirname);
 
 			vfs.src('src/**/*')
-				.pipe(atomshell({
+				.pipe(electron({
 					version: '0.26.0',
 					platform: 'darwin',
 					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
@@ -69,14 +69,14 @@ describe('atomshell', function () {
 	});
 
 	describe('linux', function () {
-		it('should copy app files and patch Atom', function(cb) {
+		it('should copy app files and patch Electron', function(cb) {
 			this.timeout(1000 * 60 * 5 /* 5 minutes */);
 
 			var files = {};
 			process.chdir(__dirname);
 
 			vfs.src('src/**/*')
-				.pipe(atomshell({
+				.pipe(electron({
 					version: '0.26.0',
 					platform: 'linux'
 				}))
@@ -105,14 +105,14 @@ describe('atomshell', function () {
 	});
 
 	describe('win32', function () {
-		it('should copy app files and patch Atom', function(cb) {
+		it('should copy app files and patch Electron', function(cb) {
 			this.timeout(1000 * 60 * 5 /* 5 minutes */);
 
 			var files = {};
 			process.chdir(__dirname);
 
 			vfs.src('src/**/*')
-				.pipe(atomshell({
+				.pipe(electron({
 					version: '0.26.0',
 					platform: 'win32'
 				}))

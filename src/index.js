@@ -15,7 +15,7 @@ function moveApp(platform, opts) {
 	});
 }
 
-function downloadAtomshell(opts) {
+function downloadElectron(opts) {
 	var stream = es.through();
 
 	download({
@@ -31,7 +31,7 @@ function downloadAtomshell(opts) {
 	return stream;
 }
 
-function _atomshell(opts) {
+function _electron(opts) {
 	var pass = es.through();
 	var result = es.through();
 
@@ -62,10 +62,10 @@ function _atomshell(opts) {
 		var sources = es.merge(es.readArray(buffer), pass)
 			.pipe(moveApp(platform, opts));
 
-		var atomshell = downloadAtomshell(opts)
+		var electron = downloadElectron(opts)
 			.pipe(platform.patch(opts));
 
-		es.merge(sources, atomshell).pipe(result);
+		es.merge(sources, electron).pipe(result);
 
 		buffer = null;
 	}));
@@ -73,13 +73,13 @@ function _atomshell(opts) {
 	return es.duplex(pass, es.merge(src, result));
 }
 
-function atomshell(opts) {
+function electron(opts) {
 	if (!opts.version) {
-		throw new Error('Missing atom-shell option: version.');
+		throw new Error('Missing Electron option: version.');
 	}
 
 	if (!opts.platform) {
-		throw new Error('Missing atom-shell option: platform.');
+		throw new Error('Missing Electron option: platform.');
 	}
 
 	if (opts.productName) {
@@ -90,9 +90,9 @@ function atomshell(opts) {
 		console.warn('productVersion is deprecated. The application\'s version will be picked up automatically from package.json.');
 	}
 
-	return _atomshell(opts);
+	return _electron(opts);
 }
 
-atomshell.zfsdest = zfs.dest;
-atomshell.download = downloadAtomshell;
-module.exports = atomshell;
+electron.zfsdest = zfs.dest;
+electron.download = downloadElectron;
+module.exports = electron;

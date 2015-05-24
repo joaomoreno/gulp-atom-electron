@@ -1,7 +1,7 @@
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
-var atomshell = require('..');
+var electron = require('..');
 var download = require('../src/download');
 
 describe('download', function () {
@@ -16,13 +16,13 @@ describe('download', function () {
 	});
 });
 
-describe('atomshell', function () {
+describe('electron', function () {
 	this.timeout(1000 * 60 * 5);
 
 	it('should expose download', function(cb) {
 		var didSeeInfoPList = false;
 
-		atomshell
+		electron
 			.download({ version: '0.19.5', platform: 'darwin' })
 			.on('data', function (f) {
 				if (f.relative === path.join('Atom.app', 'Contents', 'Info.plist')) {
@@ -39,7 +39,7 @@ describe('atomshell', function () {
 	it('should download electron', function(cb) {
 		var didSeeInfoPList = false;
 
-		atomshell
+		electron
 			.download({ version: '0.24.0', platform: 'darwin' })
 			.on('data', function (f) {
 				if (f.relative === path.join('Electron.app', 'Contents', 'Info.plist')) {
