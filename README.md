@@ -1,18 +1,18 @@
 # gulp-electron
 
-[![Build Status](https://travis-ci.org/joaomoreno/gulp-electron.svg?branch=master)](https://travis-ci.org/joaomoreno/gulp-electron)
+[![Build Status](https://travis-ci.org/joaomoreno/gulp-atom-electron.svg?branch=master)](https://travis-ci.org/joaomoreno/gulp-atom-electron)
 
 ### Installation
 
 ```bash
-npm install --save gulp-electron
+npm install --save gulp-atom-electron
 ```
 
 ### Usage
 
 ```javascript
 var gulp = require('gulp');
-var electron = require('gulp-electron');
+var electron = require('gulp-atom-electron');
 
 gulp.task('default', function () {
 	return gulp.src('src/**')
