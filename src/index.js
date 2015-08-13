@@ -119,7 +119,7 @@ function dest(destination, opts) {
 	rimraf(destination, function (err) {
 		if (err) { return result.emit('error', err); }
 
-		var stream = download(opts);
+		var stream = downloadElectron(opts);
 
 		if (opts.platform === 'win32' && opts.win32ExeBasename) {
 			stream = stream.pipe(rename(function (path) {
