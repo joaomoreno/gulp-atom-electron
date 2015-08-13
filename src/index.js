@@ -130,7 +130,7 @@ function dest(destination, opts) {
 		}
 		
 		stream
-			.pipe(symdest(path))
+			.pipe(symdest(destination))
 			.pipe(result);
 	});
 
