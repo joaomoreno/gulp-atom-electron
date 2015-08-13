@@ -1,10 +1,13 @@
 'use strict';
 
 var util = require('util');
+var path = require('path');
 var es = require('event-stream');
 var fs = require('vinyl-fs');
 var zfs = require('gulp-vinyl-zip');
 var rename = require('gulp-rename');
+var rimraf = require('rimraf');
+var symdest = require('gulp-symdest');
 var download = require('./download');
 
 function moveApp(platform, opts) {
@@ -93,6 +96,48 @@ function electron(opts) {
 	return _electron(opts);
 }
 
+function dest(destination, opts) {
+	if (!destination) {
+		throw new Error('Missing destination.');
+	}
+	
+	var shouldUpdate = false;
+
+	try {
+		var version = fs.readFileSync(path.join(destination, 'version'), 'utf8');
+		shouldUpdate = version !== 'v' + opts.version;
+	} catch (e) {
+		shouldUpdate = true;
+	}
+	
+	if (!shouldUpdate) {
+		return;
+	}
+
+	var result = es.through();
+
+	rimraf(destination, function (err) {
+		if (err) { return result.emit('error', err); }
+
+		var stream = download(opts);
+
+		if (opts.platform === 'win32' && opts.win32ExeBasename) {
+			stream = stream.pipe(rename(function (path) {
+				if (path.dirname === '.' && path.basename === 'electron' && path.extname === '.exe') {
+					path.basename = opts.win32ExeBasename;
+				}
+			}));
+		}
+		
+		stream
+			.pipe(symdest(path))
+			.pipe(result);
+	});
+
+	return result;
+}
+
 electron.zfsdest = zfs.dest;
 electron.download = downloadElectron;
+electron.dest = dest;
 module.exports = electron;
