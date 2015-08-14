@@ -4,6 +4,7 @@ var path = require('path');
 var plist = require('plist');
 var es = require('event-stream');
 var vfs = require('vinyl-fs');
+var File = require('vinyl');
 var rename = require('gulp-rename');
 var semver = require('semver');
 var util = require('./util');
@@ -99,6 +100,29 @@ function patchInfoPlist(opts) {
 	});
 }
 
+function addCredits(opts) {
+	if (!opts.darwinCredits) {
+		return es.through();
+	}
+	
+	var creditsPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Resources', 'Credits.rtf');
+	var input = es.through();
+	var credits;
+	
+	if (typeof opts.darwinCredits === 'string') {
+		credits = vfs.src(opts.darwinCredits).rename(creditsPath);
+	} else if (opts.darwinCredits instanceof Buffer) {
+		credits = es.readArray([new File({
+			path: creditsPath,
+			contents: opts.darwinCredits
+		})]);
+	} else {
+		throw new Error('Unexpected value for darwinCredits');
+	}
+	
+	return es.duplex(input, es.merge(input, credits));
+}
+
 function renameApp(opts) {
 	var originalAppName = getOriginalAppName(opts);
 	var originalAppNameRegexp = new RegExp('^' + getOriginalAppFullName(opts));
@@ -121,6 +145,7 @@ exports.patch = function(opts) {
 		.pipe(removeDefaultApp(opts))
 		.pipe(patchIcon(opts))
 		.pipe(patchInfoPlist(opts))
+		.pipe(addCredits(opts))
 		.pipe(renameApp(opts));
 
 	return es.duplex(pass, src);
