@@ -101,6 +101,9 @@ function dest(destination, opts) {
 		throw new Error('Missing destination.');
 	}
 	
+	opts.platform = opts.platform || process.platform;
+	opts.arch = opts.arch || process.arch;
+	
 	var shouldUpdate = false;
 
 	try {
