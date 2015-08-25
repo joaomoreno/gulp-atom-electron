@@ -28,19 +28,19 @@
     "event-stream": "^3.1.7",
     "github-releases": "^0.2.0",
     "gulp-rename": "^1.2.0",
+    "gulp-symdest": "^1.0.0",
     "gulp-vinyl-zip": "^1.0.0",
     "mkdirp": "^0.5.0",
     "plist": "^1.1.0",
     "progress": "^1.1.8",
     "rcedit": "^0.3.0",
+    "rimraf": "^2.4.2",
     "semver": "^4.3.4",
     "temp": "^0.8.1",
     "vinyl": "^0.5.1",
     "vinyl-fs": "^0.3.13"
   },
   "devDependencies": {
-    "gulp-symdest": "^1.0.0",
-    "mocha": "^2.0.1",
-    "rimraf": "^2.4.2"
+    "mocha": "^2.0.1"
   }
 }
