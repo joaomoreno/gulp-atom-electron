@@ -59,9 +59,13 @@ function patchIcon(opts) {
 }
 
 function patchInfoPlist(opts) {
-	var infoPlistPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Info.plist');
-
-	return es.map(function (f, cb) {
+	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
+	var resourcesPath = path.join(contentsPath, 'Resources');
+	var infoPlistPath = path.join(contentsPath, 'Info.plist');
+	
+	var icons = es.through();
+	var input = es.through();
+	var output = input.pipe(es.map(function (f, cb) {
 		if (f.relative !== infoPlistPath) {
 			return cb(null, f);
 		}
@@ -82,22 +86,35 @@ function patchInfoPlist(opts) {
 			infoPlist['CFBundleIconFile'] = opts.productName + '.icns';
 
 			if (opts.darwinBundleDocumentTypes) {
+				var iconsPaths = [];
+				
 				infoPlist['CFBundleDocumentTypes'] = (infoPlist['CFBundleDocumentTypes'] || [])
 					.concat(opts.darwinBundleDocumentTypes.map(function (type) {
+						iconsPaths.push(type.iconFile);
+						
 						return {
 							CFBundleTypeName: type.name,
 							CFBundleTypeRole: type.role,
 							CFBundleTypeOSTypes: type.ostypes,
 							CFBundleTypeExtensions: type.extensions,
-							CFBundleTypeIconFile: type.iconFile
+							CFBundleTypeIconFile: path.basename(type.iconFile)
 						};
 					}));
+				
+				// add icons to the build
+				es.merge(iconsPaths.map(function (iconPath) {
+					return vfs.src(iconPath).pipe(rename(function (path) {
+						path.dirname = resourcesPath;
+					}));
+				})).pipe(icons);
 			}
 
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
 			cb(null, f);
 		});
-	});
+	}));
+	
+	return es.duplex(input, es.merge(output, icons));
 }
 
 function addCredits(opts) {
@@ -110,7 +127,7 @@ function addCredits(opts) {
 	var credits;
 	
 	if (typeof opts.darwinCredits === 'string') {
-		credits = vfs.src(opts.darwinCredits).rename(creditsPath);
+		credits = vfs.src(opts.darwinCredits).pipe(rename(creditsPath));
 	} else if (opts.darwinCredits instanceof Buffer) {
 		credits = es.readArray([new File({
 			path: creditsPath,
