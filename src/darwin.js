@@ -62,14 +62,16 @@ function patchInfoPlist(opts) {
 	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
 	var resourcesPath = path.join(contentsPath, 'Resources');
 	var infoPlistPath = path.join(contentsPath, 'Info.plist');
+	var didCloseIcons = false;
 	
 	var icons = es.through();
 	var input = es.through();
-	var output = input.pipe(es.map(function (f, cb) {
+	var output = input.pipe(es.through(function (f) {
 		if (f.relative !== infoPlistPath) {
-			return cb(null, f);
+			return this.emit('data', f);
 		}
-
+		
+		var that = this;
 		var contents = '';
 		f.contents.on('data', function (d) { contents += d; });
 
@@ -102,20 +104,24 @@ function patchInfoPlist(opts) {
 					}));
 				
 				if (iconsPaths.length) {
-					// add icons to the build
+					didCloseIcons = true;
 					es.merge(iconsPaths.map(function (iconPath) {
 						return vfs.src(iconPath).pipe(rename(function (path) {
 							path.dirname = resourcesPath;
 						}));
 					})).pipe(icons);
-				} else {
-					es.readArray([]).pipe(icons);
 				}
 			}
 
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
-			cb(null, f);
+			that.emit('data', f);
 		});
+	}, function () {
+		if (!didCloseIcons) {
+			es.readArray([]).pipe(icons);
+		}
+		
+		this.emit('end');
 	}));
 	
 	return es.duplex(input, es.merge(output, icons));
