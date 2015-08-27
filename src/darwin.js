@@ -101,12 +101,16 @@ function patchInfoPlist(opts) {
 						};
 					}));
 				
-				// add icons to the build
-				es.merge(iconsPaths.map(function (iconPath) {
-					return vfs.src(iconPath).pipe(rename(function (path) {
-						path.dirname = resourcesPath;
-					}));
-				})).pipe(icons);
+				if (iconsPaths.length) {
+					// add icons to the build
+					es.merge(iconsPaths.map(function (iconPath) {
+						return vfs.src(iconPath).pipe(rename(function (path) {
+							path.dirname = resourcesPath;
+						}));
+					})).pipe(icons);
+				} else {
+					es.readArray([]).pipe(icons);
+				}
 			}
 
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
