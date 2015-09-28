@@ -17,6 +17,12 @@ var electron = require('gulp-atom-electron');
 gulp.task('default', function () {
 	return gulp.src('src/**')
 		.pipe(electron({ version: '0.19.4', platform: 'darwin' }))
+		.pipe(electron.dest('app'));
+});
+
+gulp.task('archive', function () {
+	return gulp.src('src/**')
+		.pipe(electron({ version: '0.19.4', platform: 'darwin' }))
 		.pipe(electron.zfsdest('app.zip'));
 });
 ```
