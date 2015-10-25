@@ -5,27 +5,71 @@
 ### Installation
 
 ```bash
-npm install --save gulp-atom-electron
+npm install --save-dev gulp-atom-electron
 ```
 
 ### Usage
+
+You can use this module in two distinct ways: **to package your application** and/or
+**to download a version of Electron** to disk.
+
+#### How to Package Your Application
+
+You should source your app's files using `gulp.src` and pipe them through
+`gulp-atom-electron`. The following task will create your application in
+the `app` folder, ready for launch.
+
+```javascript
+var gulp = require('gulp');
+var symdest = require('gulp-symdest');
+var electron = require('gulp-atom-electron');
+
+gulp.task('default', function () {
+	return gulp.src('src/**')
+		.pipe(electron({ version: '0.34.1', platform: 'darwin' }))
+		.pipe(symdest('app'));
+});
+```
+
+**Note:** It is important to use `gulp-symdest` only because of the OS X
+platform. An application bundle has symlinks within and if you use `gulp.dest`
+to pipe the built app to disk, those will be missing. `symdest` will make
+sure symlinks are taken into account.
+
+Finally, you can always pipe it to a **zip archive** for easy distribution.
+joaomoreno/gulp-vinyl-zip is recommended:
+
+```javascript
+var gulp = require('gulp');
+var zip = require('gulp-vinyl-zip');
+var electron = require('gulp-atom-electron');
+
+gulp.task('default', function () {
+	return gulp.src('src/**')
+		.pipe(electron({ version: '0.34.1', platform: 'darwin' }))
+		.pipe(zip.dest('app-darwin.zip'));
+});
+```
+
+#### How to Download Electron
+
+There's also a very handy export `electron.dest()` function that
+makes sure you always have the exact version of Electron in a directory:
 
 ```javascript
 var gulp = require('gulp');
 var electron = require('gulp-atom-electron');
 
 gulp.task('default', function () {
-	return gulp.src('src/**')
-		.pipe(electron({ version: '0.19.4', platform: 'darwin' }))
-		.pipe(electron.dest('app'));
-});
-
-gulp.task('archive', function () {
-	return gulp.src('src/**')
-		.pipe(electron({ version: '0.19.4', platform: 'darwin' }))
-		.pipe(electron.zfsdest('app.zip'));
+	return electron.dest('electron-build', { version: '0.34.1', platform: 'darwin' });
 });
 ```
+
+This will place a vanilla Electron build into the `electron-build` directory.
+If you run it consecutively and it detects that the version in the destination directory
+is the intended one, it will end up in a no-op. Else it will download the provided version
+and replace it.
+
 
 ### Options
 

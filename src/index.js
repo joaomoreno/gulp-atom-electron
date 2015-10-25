@@ -101,6 +101,7 @@ function dest(destination, opts) {
 		throw new Error('Missing destination.');
 	}
 	
+	opts = opts || {};
 	opts.platform = opts.platform || process.platform;
 	opts.arch = opts.arch || process.arch;
 	
@@ -140,7 +141,5 @@ function dest(destination, opts) {
 	return result;
 }
 
-electron.zfsdest = zfs.dest;
-electron.download = downloadElectron;
 electron.dest = dest;
 module.exports = electron;
