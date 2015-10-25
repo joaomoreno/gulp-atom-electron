@@ -53,7 +53,6 @@ describe('electron', function () {
 				})
 				.on('error', cb)
 				.on('end', function () {
-					assert(files['FakeTemplateApp.app']);
 					assert(files[path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'app', 'main.js')]);
 					assert(!Object.keys(files).some(function (k) { return util.startsWith(k, path.join('FakeTemplateApp.app', 'Contents', 'Resources', 'default_app')); }));
 
