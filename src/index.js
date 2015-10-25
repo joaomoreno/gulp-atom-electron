@@ -4,7 +4,6 @@ var util = require('util');
 var path = require('path');
 var es = require('event-stream');
 var fs = require('fs');
-var zfs = require('gulp-vinyl-zip');
 var rename = require('gulp-rename');
 var rimraf = require('rimraf');
 var symdest = require('gulp-symdest');
@@ -16,22 +15,6 @@ function moveApp(platform, opts) {
 	return rename(function (path) {
 		path.dirname = appPath + (path.dirname === '.' ? '' : '/' + path.dirname);
 	});
-}
-
-function downloadElectron(opts) {
-	var stream = es.through();
-
-	download({
-		version: opts.version,
-		platform: opts.platform,
-		arch: opts.arch,
-		token: opts.token
-	}, function(err, vanilla) {
-		if (err) { return stream.emit('error', err); }
-		zfs.src(vanilla).pipe(stream);
-	});
-
-	return stream;
 }
 
 function _electron(opts) {
@@ -65,7 +48,7 @@ function _electron(opts) {
 		var sources = es.merge(es.readArray(buffer), pass)
 			.pipe(moveApp(platform, opts));
 
-		var electron = downloadElectron(opts)
+		var electron = download(opts)
 			.pipe(platform.patch(opts));
 
 		es.merge(sources, electron).pipe(result);
@@ -123,7 +106,7 @@ function dest(destination, opts) {
 	rimraf(destination, function (err) {
 		if (err) { return result.emit('error', err); }
 
-		var stream = downloadElectron(opts);
+		var stream = download(opts);
 
 		if (opts.platform === 'win32' && opts.win32ExeBasename) {
 			stream = stream.pipe(rename(function (path) {

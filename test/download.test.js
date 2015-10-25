@@ -1,7 +1,6 @@
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
-var electron = require('..');
 var download = require('../src/download');
 
 describe('download', function () {
@@ -10,8 +9,7 @@ describe('download', function () {
 	it('should work', function(cb) {
 		var didSeeInfoPList = false;
 
-		electron
-			.download({ version: '0.24.0', platform: 'darwin' })
+		download({ version: '0.24.0', platform: 'darwin' })
 			.on('data', function (f) {
 				if (f.relative === path.join('Electron.app', 'Contents', 'Info.plist')) {
 					didSeeInfoPList = true;

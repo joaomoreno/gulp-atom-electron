@@ -7,6 +7,8 @@ var mkdirp = require('mkdirp');
 var GitHub = require('github-releases');
 var ProgressBar = require('progress');
 var semver = require('semver');
+var es = require('event-stream');
+var zfs = require('gulp-vinyl-zip');
 
 var cachePath = path.join(os.tmpdir(), 'gulp-electron-cache');
 mkdirp.sync(cachePath);
@@ -34,7 +36,7 @@ function getAssetName(opts) {
 	return semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell';
 }
 
-module.exports = function (opts, cb) {
+function download(opts, cb) {
 	var github = new GitHub({ repo: 'atom/electron', token: opts.token });
 
 	if (!opts.version) {
@@ -99,4 +101,20 @@ module.exports = function (opts, cb) {
 	}
 
 	cache(assetName, download, cb);
+}
+
+module.exports = function (opts) {
+	var stream = es.through();
+
+	download({
+		version: opts.version,
+		platform: opts.platform,
+		arch: opts.arch,
+		token: opts.token
+	}, function(err, vanilla) {
+		if (err) { return stream.emit('error', err); }
+		zfs.src(vanilla).pipe(stream);
+	});
+
+	return stream;
 };
