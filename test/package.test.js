@@ -45,7 +45,8 @@ describe('electron', function () {
 				.pipe(electron({
 					version: '0.26.0',
 					platform: 'darwin',
-					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns')
+					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns'),
+					token: process.env['GITHUB_TOKEN']
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -77,7 +78,8 @@ describe('electron', function () {
 			vfs.src('src/**/*')
 				.pipe(electron({
 					version: '0.26.0',
-					platform: 'linux'
+					platform: 'linux',
+					token: process.env['GITHUB_TOKEN']
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
@@ -113,7 +115,8 @@ describe('electron', function () {
 			vfs.src('src/**/*')
 				.pipe(electron({
 					version: '0.26.0',
-					platform: 'win32'
+					platform: 'win32',
+					token: process.env['GITHUB_TOKEN']
 				}))
 				.on('data', function (f) {
 					assert(!files[f.relative]);
