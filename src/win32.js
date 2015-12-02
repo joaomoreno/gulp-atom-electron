@@ -34,7 +34,9 @@ function patchExecutable(opts) {
 				LegalCopyright: opts.copyright || 'Copyright (C) 2014 GitHub, Inc. All rights reserved',
 				ProductName: opts.productName,
 				ProductVersion: opts.productVersion
-			}
+			},
+			'file-version': opts.productVersion,
+			'product-version': opts.productVersion
 		};
 
 		if (opts.winIcon) {
@@ -43,7 +45,7 @@ function patchExecutable(opts) {
 
 		var tempPath = temp.path();
 		var ostream = fs.createWriteStream(tempPath);
-		
+
 		f.contents.pipe(ostream);
 		ostream.on('finish', function () {
 			rcedit(tempPath, patch, function (err) {
@@ -56,7 +58,7 @@ function patchExecutable(opts) {
 
 					fs.unlink(tempPath, function (err) {
 						if (err) { return cb(err); }
-						
+
 						cb(null, f);
 					})
 				});
