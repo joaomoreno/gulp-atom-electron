@@ -30,9 +30,9 @@ function patchExecutable(opts) {
 		var patch = {
 			'version-string': {
 				CompanyName: opts.companyName || 'GitHub, Inc.',
-				FileDescription: opts.productName,
+				FileDescription: opts.productAppName || opts.productName,
 				LegalCopyright: opts.copyright || 'Copyright (C) 2014 GitHub, Inc. All rights reserved',
-				ProductName: opts.productName,
+				ProductName: opts.productAppName || opts.productName,
 				ProductVersion: opts.productVersion
 			},
 			'file-version': opts.productVersion,
