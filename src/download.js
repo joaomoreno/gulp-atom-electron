@@ -80,7 +80,7 @@ function download(opts, cb) {
 			}
 
 			github.downloadAsset(asset, function (error, istream) {
-				if (process.stdout.isTTY) {
+				if (process.stdout.isTTY && !opts.quiet) {
 					var bar = new ProgressBar('↓ ' + asset.name + ' [:bar] :percent', {
 						total: asset.size,
 						width: 20
@@ -110,7 +110,8 @@ module.exports = function (opts) {
 		version: opts.version,
 		platform: opts.platform,
 		arch: opts.arch,
-		token: opts.token
+		token: opts.token,
+		quiet: opts.quiet
 	}, function(err, vanilla) {
 		if (err) { return stream.emit('error', err); }
 		zfs.src(vanilla).pipe(stream);

@@ -78,7 +78,7 @@ You **must** provide the following options:
 - `platform` - kind of OS (`darwin`, `linux`, `win32`)
 
 The following options are **optional**:
-
+- `quiet` - suppress a progress bar when downloading
 - `token` - GitHub access token(to avoid request limit. You can grab it [here](https://github.com/settings/tokens))
 
 - `arch` - the processor architecture (`ia32`, `x64`)
