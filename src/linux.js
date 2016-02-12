@@ -27,7 +27,7 @@ function removeDefaultApp() {
 function renameApp(opts) {
 	return rename(function (path) {
 		if (path.dirname === '.' && path.basename === getOriginalAppName(opts) && path.extname === '') {
-			path.basename = opts.productName;
+			path.basename = opts.linuxExecutableName || opts.productName;
 		}
 	});
 }

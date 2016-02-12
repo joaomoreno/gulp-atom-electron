@@ -87,7 +87,7 @@ The following options are **optional**:
 	- `winIcon` - path to an `.ico` file
 	- `companyName` - company name
 	- `copyright` - copyright statement
-	
+
 - **Darwin**
 	- `darwinIcon` - path to an `.icns` file
 	- `darwinBundleDocumentTypes` - ([reference](https://developer.apple.com/library/ios/documentation/filemanagement/conceptual/documentinteraction_topicsforios/Articles/RegisteringtheFileTypesYourAppSupports.html)) array of dictionaries, each containing the following structure:
@@ -96,3 +96,6 @@ The following options are **optional**:
 	 - `ostypes` - the `CFBundleTypeOSTypes` value, a `string` array
 	 - `extensions` - the `CFBundleTypeExtensions` value, a `string` array of file extensions
 	 - `iconFile` - the `CFBundleTypeIconFile` value
+
+- **Linux**
+	- `linuxExecutableName` - overwrite the name of the executable in Linux
