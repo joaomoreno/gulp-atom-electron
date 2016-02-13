@@ -7,6 +7,7 @@ var rename = require('gulp-rename');
 var temp = require('temp').track();
 var rcedit = require('rcedit');
 var semver = require('semver');
+var which = require('which');
 var util = require('./util');
 
 function getOriginalAppName(opts) {
@@ -23,8 +24,22 @@ exports.getAppPath = function(opts) {
 
 function patchExecutable(opts) {
 	return es.map(function (f, cb) {
-		if (f.relative !== getOriginalAppFullName(opts) || process.platform !== 'win32') {
+		if (f.relative !== getOriginalAppFullName(opts)) {
 			return cb(null, f);
+		}
+
+		if (process.platform !== 'win32') {
+			// check for Wine in path
+			var winePath;
+			try {
+				which.sync('wine'); // returns path if found, throws if not
+			} catch (e) {
+				// Wine is not in path
+				return cb(null, f);
+			}
+
+			// if we got here, we kniw Wine is in the path
+			// and so we want to run rcedit despite not being on Win32
 		}
 
 		var patch = {
