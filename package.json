@@ -41,6 +41,7 @@
     "vinyl-fs": "^0.3.13"
   },
   "devDependencies": {
+    "gulp-vinyl-zip": "^1.2.1",
     "mocha": "^2.0.1"
   }
 }
