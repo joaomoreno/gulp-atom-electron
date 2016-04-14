@@ -32,20 +32,19 @@ describe('download', function () {
 		var original = download({ version: '0.37.5', platform: 'darwin', token: process.env['GITHUB_TOKEN'] })
 			.pipe(filter("**/libffmpeg.dylib"))
 			.pipe(buffer())
-			.pipe(es.through(function (f) { originalFile = f; }));
-		
-		var modifiedFile = null;
-		var modified = download({ version: '0.37.5', platform: 'darwin', token: process.env['GITHUB_TOKEN'], ffmpegChromium: true })
-			.pipe(filter("**/libffmpeg.dylib"))
-			.pipe(buffer())
-			.pipe(es.through(function (f) { modifiedFile = f; }));
-		
-		es.merge(original, modified)
+			.pipe(es.through(function (f) { originalFile = f; }))
 			.on("end", function () {
-				assert(originalFile);
-				assert(modifiedFile);
-				assert(originalFile.contents.length !== modifiedFile.contents.length);
-				cb();
+				var modifiedFile = null;
+				var modified = download({ version: '0.37.5', platform: 'darwin', token: process.env['GITHUB_TOKEN'], ffmpegChromium: true })
+					.pipe(filter("**/libffmpeg.dylib"))
+					.pipe(buffer())
+					.pipe(es.through(function (f) { modifiedFile = f; }))
+					.on("end", function () {
+						assert(originalFile);
+						assert(modifiedFile);
+						assert(originalFile.contents.length !== modifiedFile.contents.length);
+						cb();
+					});
 			});
 	});
 });
