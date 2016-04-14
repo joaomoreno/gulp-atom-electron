@@ -7,8 +7,11 @@ var mkdirp = require('mkdirp');
 var GitHub = require('github-releases');
 var ProgressBar = require('progress');
 var semver = require('semver');
+var rename = require('gulp-rename');
 var es = require('event-stream');
 var zfs = require('gulp-vinyl-zip');
+var filter = require('gulp-filter');
+var assign = require('object-assign');
 
 var cachePath = path.join(os.tmpdir(), 'gulp-electron-cache');
 mkdirp.sync(cachePath);
@@ -30,10 +33,6 @@ function cache(assetName, onMiss, cb) {
 			});
 		});
 	});
-}
-
-function getAssetName(opts) {
-	return semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell';
 }
 
 function download(opts, cb) {
@@ -59,7 +58,7 @@ function download(opts, cb) {
 	}
 
 	var version = 'v' + opts.version;
-	var assetName = [getAssetName(opts), version, platform, arch].join('-') + '.zip';
+	var assetName = [opts.assetName, version, platform, arch].join('-') + '.zip';
 
 	function download(assetPath, cb) {
 		github.getReleases({ tag_name: version }, function (err, releases) {
@@ -103,19 +102,42 @@ function download(opts, cb) {
 	cache(assetName, download, cb);
 }
 
-module.exports = function (opts) {
-	var stream = es.through();
+function getDarwinLibFFMpegPath(opts) {
+	return path.join('Electron.app', 'Contents', 'Frameworks', 'Electron Framework.framework', 'Versions', 'A', 'Libraries', 'libffmpeg.dylib');
+}
 
-	download({
+module.exports = function (opts) {
+	var electron = es.through();
+	var ffmpeg = es.through();
+	
+	var downloadOpts = {
 		version: opts.version,
 		platform: opts.platform,
 		arch: opts.arch,
+		assetName: semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell',
 		token: opts.token,
 		quiet: opts.quiet
-	}, function(err, vanilla) {
-		if (err) { return stream.emit('error', err); }
-		zfs.src(vanilla).pipe(stream);
-	});
+	};
 
-	return stream;
+	download(downloadOpts, function(err, vanilla) {
+		if (err) { return electron.emit('error', err); }
+		zfs.src(vanilla)
+			.pipe(opts.ffmpegChromium ? filter(['**', '!**/*ffmpeg.*']) : es.through())
+			.pipe(electron);
+	});
+	
+	if (opts.ffmpegChromium) {
+		download(assign({}, downloadOpts, { assetName: 'ffmpeg' }), function(err, vanilla) {
+			if (err) { return ffmpeg.emit('error', err); }
+			
+			zfs.src(vanilla)
+				.pipe(filter('**/*ffmpeg.*'))
+				.pipe(opts.platform === 'darwin' ? rename(getDarwinLibFFMpegPath(opts)) : es.through())
+				.pipe(ffmpeg);
+		});
+	} else {
+		ffmpeg = es.readArray([]);
+	}
+
+	return es.merge(electron, ffmpeg);
 };

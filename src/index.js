@@ -50,7 +50,7 @@ function _electron(opts) {
 
 		var electron = download(opts)
 			.pipe(platform.patch(opts));
-
+			
 		es.merge(sources, electron).pipe(result);
 
 		buffer = null;
@@ -66,6 +66,10 @@ function electron(opts) {
 
 	if (!opts.platform) {
 		throw new Error('Missing Electron option: platform.');
+	}
+	
+	if (opts.ffmpegChromium && !semver.gte(opts.version, '0.36.7')) {
+		throw new Error('ffmpegChromium option is only supported in Electron versions >= v0.36.8.');
 	}
 
 	if (opts.productName) {
