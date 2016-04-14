@@ -8,10 +8,11 @@ var rename = require('gulp-rename');
 var rimraf = require('rimraf');
 var symdest = require('gulp-symdest');
 var download = require('./download');
+var semver = require('semver');
 
 function moveApp(platform, opts) {
 	var appPath = platform.getAppPath(opts);
-	
+
 	return rename(function (path) {
 		path.dirname = appPath + (path.dirname === '.' ? '' : '/' + path.dirname);
 	});
@@ -50,7 +51,7 @@ function _electron(opts) {
 
 		var electron = download(opts)
 			.pipe(platform.patch(opts));
-			
+
 		es.merge(sources, electron).pipe(result);
 
 		buffer = null;
@@ -67,7 +68,7 @@ function electron(opts) {
 	if (!opts.platform) {
 		throw new Error('Missing Electron option: platform.');
 	}
-	
+
 	if (opts.ffmpegChromium && !semver.gte(opts.version, '0.36.7')) {
 		throw new Error('ffmpegChromium option is only supported in Electron versions >= v0.36.8.');
 	}
@@ -87,11 +88,11 @@ function dest(destination, opts) {
 	if (!destination) {
 		throw new Error('Missing destination.');
 	}
-	
+
 	opts = opts || {};
 	opts.platform = opts.platform || process.platform;
 	opts.arch = opts.arch || process.arch;
-	
+
 	var shouldUpdate = false;
 
 	try {
@@ -100,7 +101,7 @@ function dest(destination, opts) {
 	} catch (e) {
 		shouldUpdate = true;
 	}
-	
+
 	if (!shouldUpdate) {
 		return;
 	}
@@ -119,7 +120,7 @@ function dest(destination, opts) {
 				}
 			}));
 		}
-		
+
 		stream
 			.pipe(symdest(destination))
 			.pipe(result);
