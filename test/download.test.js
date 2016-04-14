@@ -1,6 +1,9 @@
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
+var filter = require('gulp-filter');
+var buffer = require('gulp-buffer');
+var es = require('event-stream');
 var download = require('../src/download');
 
 describe('download', function () {
@@ -18,6 +21,30 @@ describe('download', function () {
 			.on('error', cb)
 			.on('end', function () {
 				assert(didSeeInfoPList);
+				cb();
+			});
+	});
+	
+	it('should replace ffmpeg', function(cb) {
+		var ffmpegSeen = false;
+
+		var originalFile = null;
+		var original = download({ version: '0.37.5', platform: 'darwin', token: process.env['GITHUB_TOKEN'] })
+			.pipe(filter("**/libffmpeg.dylib"))
+			.pipe(buffer())
+			.pipe(es.through(function (f) { originalFile = f; }));
+		
+		var modifiedFile = null;
+		var modified = download({ version: '0.37.5', platform: 'darwin', token: process.env['GITHUB_TOKEN'], ffmpegChromium: true })
+			.pipe(filter("**/libffmpeg.dylib"))
+			.pipe(buffer())
+			.pipe(es.through(function (f) { modifiedFile = f; }));
+		
+		es.merge(original, modified)
+			.on("end", function () {
+				assert(originalFile);
+				assert(modifiedFile);
+				assert(originalFile.contents.length !== modifiedFile.contents.length);
 				cb();
 			});
 	});
