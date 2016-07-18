@@ -46,6 +46,7 @@ describe('electron', function () {
 					version: '0.26.0',
 					platform: 'darwin',
 					darwinIcon: path.join(__dirname, 'resources', 'myapp.icns'),
+					darwinBundleIdentifier: 'com.github.joaomoreno.gulpatomelectron.faketemplateapp',
 					token: process.env['GITHUB_TOKEN']
 				}))
 				.on('data', function (f) {

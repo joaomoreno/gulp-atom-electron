@@ -63,14 +63,14 @@ function patchInfoPlist(opts) {
 	var resourcesPath = path.join(contentsPath, 'Resources');
 	var infoPlistPath = path.join(contentsPath, 'Info.plist');
 	var didCloseIcons = false;
-	
+
 	var icons = es.through();
 	var input = es.through();
 	var output = input.pipe(es.through(function (f) {
 		if (f.relative !== infoPlistPath) {
 			return this.emit('data', f);
 		}
-		
+
 		var that = this;
 		var contents = '';
 		f.contents.on('data', function (d) { contents += d; });
@@ -89,11 +89,11 @@ function patchInfoPlist(opts) {
 
 			if (opts.darwinBundleDocumentTypes) {
 				var iconsPaths = [];
-				
+
 				infoPlist['CFBundleDocumentTypes'] = (infoPlist['CFBundleDocumentTypes'] || [])
 					.concat(opts.darwinBundleDocumentTypes.map(function (type) {
 						iconsPaths.push(type.iconFile);
-						
+
 						return {
 							CFBundleTypeName: type.name,
 							CFBundleTypeRole: type.role,
@@ -102,7 +102,7 @@ function patchInfoPlist(opts) {
 							CFBundleTypeIconFile: path.basename(type.iconFile)
 						};
 					}));
-				
+
 				if (iconsPaths.length) {
 					didCloseIcons = true;
 					es.merge(iconsPaths.map(function (iconPath) {
@@ -120,10 +120,66 @@ function patchInfoPlist(opts) {
 		if (!didCloseIcons) {
 			es.readArray([]).pipe(icons);
 		}
-		
+
 		this.emit('end');
 	}));
-	
+
+	return es.duplex(input, es.merge(output, icons));
+}
+
+function patchHelperInfoPlist(opts) {
+	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
+	var infoPlistPath = path.join(contentsPath, 'Info.plist');
+	var didCloseIcons = false;
+
+	var icons = es.through();
+	var input = es.through();
+	var output = input.pipe(es.through(function (f) {
+		if (!/Contents\/Frameworks\/Electron\ Helper( \w+)?\.app\/Contents\/Info.plist$/i.test(f.relative)) {
+			return this.emit('data', f);
+		}
+
+		var that = this;
+		var contents = '';
+		f.contents.on('data', function (d) { contents += d; });
+
+		f.contents.on('end', function () {
+			var infoPlist = plist.parse(contents.toString('utf8'));
+			var match = /\.helper\.([^.]+)$/.exec(infoPlist['CFBundleIdentifier'] || '');
+			var suffix = match ? match[1] : '';
+
+			if (opts.darwinBundleIdentifier) {
+				infoPlist['CFBundleIdentifier'] = opts.darwinBundleIdentifier + '.helper';
+
+				if (suffix) {
+					infoPlist['CFBundleIdentifier'] += '.' + suffix;
+				}
+			}
+
+			infoPlist['CFBundleName'] = opts.productName + ' Helper';
+			if (suffix) {
+				infoPlist['CFBundleName'] += ' ' + suffix;
+			}
+
+			if (infoPlist['CFBundleDisplayName']) {
+				infoPlist['CFBundleDisplayName'] = infoPlist['CFBundleName'];
+			}
+
+			if (infoPlist['CFBundleExecutable']) {
+				infoPlist['CFBundleExecutable'] = infoPlist['CFBundleName'];
+			}
+
+			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
+			that.emit('data', f);
+		});
+	}, function () {
+		if (!didCloseIcons) {
+			es.readArray([]).pipe(icons);
+		}
+
+		this.emit('end');
+	}));
+
 	return es.duplex(input, es.merge(output, icons));
 }
 
@@ -131,11 +187,11 @@ function addCredits(opts) {
 	if (!opts.darwinCredits) {
 		return es.through();
 	}
-	
+
 	var creditsPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Resources', 'Credits.rtf');
 	var input = es.through();
 	var credits;
-	
+
 	if (typeof opts.darwinCredits === 'string') {
 		credits = vfs.src(opts.darwinCredits).pipe(rename(creditsPath));
 	} else if (opts.darwinCredits instanceof Buffer) {
@@ -146,7 +202,7 @@ function addCredits(opts) {
 	} else {
 		throw new Error('Unexpected value for darwinCredits');
 	}
-	
+
 	return es.duplex(input, es.merge(input, credits));
 }
 
@@ -165,6 +221,29 @@ function renameApp(opts) {
 	});
 }
 
+function renameAppHelper(opts) {
+	var originalAppName = getOriginalAppName(opts);
+	var originalAppNameRegexp = new RegExp('^' + getOriginalAppFullName(opts));
+	var appName = getAppName(opts);
+	var name = opts.productAppName || opts.productName;
+
+	return rename(function (path) {
+		var basenameMatch = /^Electron Helper( \w+)?$/.exec(path.basename);
+
+		if (/Contents\/Frameworks/.test(path.dirname) && path.extname === '.app' && basenameMatch) {
+			var suffix = basenameMatch[1] || '';
+			path.basename = name + ' Helper' + suffix;
+		} else if (/Contents\/Frameworks\/Electron\ Helper( \w+)?\.app/.test(path.dirname)) {
+			var isInMacOS = /Contents\/Frameworks\/Electron\ Helper( \w+)?\.app\/Contents\/MacOS$/.test(path.dirname);
+			path.dirname = path.dirname.replace(/Electron\ Helper( \w+)?\.app/, name + ' Helper$1.app');
+
+			if (isInMacOS && /^Electron Helper( \w+)?$/.test(path.basename) && path.extname === '') {
+				path.basename = path.basename.replace(/Electron\ Helper( \w+)?$/, name + ' Helper$1');
+			}
+		}
+	});
+}
+
 exports.patch = function(opts) {
 	var pass = es.through();
 
@@ -172,8 +251,10 @@ exports.patch = function(opts) {
 		.pipe(removeDefaultApp(opts))
 		.pipe(patchIcon(opts))
 		.pipe(patchInfoPlist(opts))
+		.pipe(patchHelperInfoPlist(opts))
 		.pipe(addCredits(opts))
-		.pipe(renameApp(opts));
+		.pipe(renameApp(opts))
+		.pipe(renameAppHelper(opts));
 
 	return es.duplex(pass, src);
 };
