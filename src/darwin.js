@@ -225,7 +225,7 @@ function renameAppHelper(opts) {
 	var originalAppName = getOriginalAppName(opts);
 	var originalAppNameRegexp = new RegExp('^' + getOriginalAppFullName(opts));
 	var appName = getAppName(opts);
-	var name = opts.productAppName || opts.productName;
+	var name = opts.productName;
 
 	return rename(function (path) {
 		var basenameMatch = /^Electron Helper( \w+)?$/.exec(path.basename);
