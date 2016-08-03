@@ -12,7 +12,7 @@ describe('download', function () {
 	it('should work', function(cb) {
 		var didSeeInfoPList = false;
 
-		download({ version: '0.24.0', platform: 'darwin', token: process.env['GITHUB_TOKEN'] })
+		download({ version: '0.37.5', platform: 'darwin', token: process.env['GITHUB_TOKEN'] })
 			.on('data', function (f) {
 				if (f.relative === path.join('Electron.app', 'Contents', 'Info.plist')) {
 					didSeeInfoPList = true;
@@ -24,7 +24,7 @@ describe('download', function () {
 				cb();
 			});
 	});
-	
+
 	it('should replace ffmpeg', function(cb) {
 		var ffmpegSeen = false;
 
