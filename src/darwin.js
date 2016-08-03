@@ -113,6 +113,16 @@ function patchInfoPlist(opts) {
 				}
 			}
 
+			if (opts.darwinBundleURLTypes) {
+				infoPlist['CFBundleURLTypes'] = opts.darwinBundleURLTypes.map(function (type) {
+					return {
+						CFBundleTypeRole: type.role,
+						CFBundleURLName: type.name,
+						CFBundleURLSchemes: type.urlSchemes
+					};
+				})
+			}
+
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
 			that.emit('data', f);
 		});
