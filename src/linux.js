@@ -36,7 +36,7 @@ exports.patch = function(opts) {
 	var pass = es.through();
 
 	var src = pass
-		.pipe(removeDefaultApp())
+		.pipe(opts.keepDefaultApp ? es.through() : removeDefaultApp())
 		.pipe(renameApp(opts));
 
 	return es.duplex(pass, src);

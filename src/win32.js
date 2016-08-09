@@ -89,7 +89,7 @@ exports.patch = function(opts) {
 	var pass = es.through();
 
 	var src = pass
-		.pipe(removeDefaultApp())
+		.pipe(opts.keepDefaultApp ? es.through() : removeDefaultApp())
 		.pipe(patchExecutable(opts))
 		.pipe(renameApp(opts));
 

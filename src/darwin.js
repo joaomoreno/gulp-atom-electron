@@ -258,7 +258,7 @@ exports.patch = function(opts) {
 	var pass = es.through();
 
 	var src = pass
-		.pipe(removeDefaultApp(opts))
+		.pipe(opts.keepDefaultApp ? es.through() : removeDefaultApp(opts))
 		.pipe(patchIcon(opts))
 		.pipe(patchInfoPlist(opts))
 		.pipe(patchHelperInfoPlist(opts))
