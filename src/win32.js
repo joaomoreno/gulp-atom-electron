@@ -47,7 +47,7 @@ function patchExecutable(opts) {
 		var ostream = fs.createWriteStream(tempPath);
 
 		f.contents.pipe(ostream);
-		ostream.on('finish', function () {
+		ostream.on('close', function () {
 			rcedit(tempPath, patch, function (err) {
 				if (err) { return cb(err); }
 
