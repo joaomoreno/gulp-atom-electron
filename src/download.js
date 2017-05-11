@@ -36,7 +36,7 @@ function cache(assetName, onMiss, cb) {
 }
 
 function download(opts, cb) {
-	var github = new GitHub({ repo: 'atom/electron', token: opts.token });
+	var github = new GitHub({ repo: opts.repo || 'atom/electron', token: opts.token });
 
 	if (!opts.version) {
 		return cb(new Error('Missing version'));
@@ -109,7 +109,7 @@ function getDarwinLibFFMpegPath(opts) {
 module.exports = function (opts) {
 	var electron = es.through();
 	var ffmpeg = es.through();
-	
+
 	var downloadOpts = {
 		version: opts.version,
 		platform: opts.platform,
@@ -119,17 +119,17 @@ module.exports = function (opts) {
 		quiet: opts.quiet
 	};
 
-	download(downloadOpts, function(err, vanilla) {
+	download(downloadOpts, function (err, vanilla) {
 		if (err) { return electron.emit('error', err); }
 		zfs.src(vanilla)
 			.pipe(opts.ffmpegChromium ? filter(['**', '!**/*ffmpeg.*']) : es.through())
 			.pipe(electron);
 	});
-	
+
 	if (opts.ffmpegChromium) {
-		download(assign({}, downloadOpts, { assetName: 'ffmpeg' }), function(err, vanilla) {
+		download(assign({}, downloadOpts, { assetName: 'ffmpeg' }), function (err, vanilla) {
 			if (err) { return ffmpeg.emit('error', err); }
-			
+
 			zfs.src(vanilla)
 				.pipe(filter('**/*ffmpeg.*'))
 				.pipe(opts.platform === 'darwin' ? rename(getDarwinLibFFMpegPath(opts)) : es.through())
