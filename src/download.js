@@ -116,7 +116,8 @@ module.exports = function (opts) {
 		arch: opts.arch,
 		assetName: semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell',
 		token: opts.token,
-		quiet: opts.quiet
+		quiet: opts.quiet,
+		repo: opts.repo
 	};
 
 	download(downloadOpts, function (err, vanilla) {
