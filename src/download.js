@@ -14,25 +14,26 @@ var filter = require('gulp-filter');
 var assign = require('object-assign');
 
 var cachePath = path.join(os.tmpdir(), 'gulp-electron-cache');
-mkdirp.sync(cachePath);
 
 function cache(assetName, repo, onMiss, cb) {
 	var assetFolder = path.join(cachePath, repo);
-	mkdirp.sync(assetFolder);
+	mkdirp(assetFolder, function (err) {
+		if (err) { return cb(err); }
 
-	var assetPath = path.join(assetFolder, assetName);
+		var assetPath = path.join(assetFolder, assetName);
 
-	fs.exists(assetPath, function (exists) {
-		if (exists) { return cb(null, assetPath); }
+		fs.exists(assetPath, function (exists) {
+			if (exists) { return cb(null, assetPath); }
 
-		var tempAssetPath = assetPath + '.tmp';
-		onMiss(tempAssetPath, function (err) {
-			if (err) { return cb(err); }
-
-			fs.rename(tempAssetPath, assetPath, function (err) {
+			var tempAssetPath = assetPath + '.tmp';
+			onMiss(tempAssetPath, function (err) {
 				if (err) { return cb(err); }
 
-				cb(null, assetPath);
+				fs.rename(tempAssetPath, assetPath, function (err) {
+					if (err) { return cb(err); }
+
+					cb(null, assetPath);
+				});
 			});
 		});
 	});
