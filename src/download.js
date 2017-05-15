@@ -16,8 +16,11 @@ var assign = require('object-assign');
 var cachePath = path.join(os.tmpdir(), 'gulp-electron-cache');
 mkdirp.sync(cachePath);
 
-function cache(assetName, onMiss, cb) {
-	var assetPath = path.join(cachePath, assetName);
+function cache(assetName, repo, onMiss, cb) {
+	var assetFolder = path.join(cachePath, repo);
+	mkdirp.sync(assetFolder);
+
+	var assetPath = path.join(assetFolder, assetName);
 
 	fs.exists(assetPath, function (exists) {
 		if (exists) { return cb(null, assetPath); }
@@ -36,7 +39,8 @@ function cache(assetName, onMiss, cb) {
 }
 
 function download(opts, cb) {
-	var github = new GitHub({ repo: opts.repo || 'atom/electron', token: opts.token });
+	var repo = opts.repo || 'atom/electron';
+	var github = new GitHub({ repo: repo, token: opts.token });
 
 	if (!opts.version) {
 		return cb(new Error('Missing version'));
@@ -99,7 +103,7 @@ function download(opts, cb) {
 		});
 	}
 
-	cache(assetName, download, cb);
+	cache(assetName, repo, download, cb);
 }
 
 function getDarwinLibFFMpegPath(opts) {
