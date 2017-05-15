@@ -14,29 +14,34 @@ var filter = require('gulp-filter');
 var assign = require('object-assign');
 
 var cachePath = path.join(os.tmpdir(), 'gulp-electron-cache');
-mkdirp.sync(cachePath);
 
-function cache(assetName, onMiss, cb) {
-	var assetPath = path.join(cachePath, assetName);
+function cache(assetName, repo, onMiss, cb) {
+	var assetFolder = path.join(cachePath, repo);
+	mkdirp(assetFolder, function (err) {
+		if (err) { return cb(err); }
 
-	fs.exists(assetPath, function (exists) {
-		if (exists) { return cb(null, assetPath); }
+		var assetPath = path.join(assetFolder, assetName);
 
-		var tempAssetPath = assetPath + '.tmp';
-		onMiss(tempAssetPath, function (err) {
-			if (err) { return cb(err); }
+		fs.exists(assetPath, function (exists) {
+			if (exists) { return cb(null, assetPath); }
 
-			fs.rename(tempAssetPath, assetPath, function (err) {
+			var tempAssetPath = assetPath + '.tmp';
+			onMiss(tempAssetPath, function (err) {
 				if (err) { return cb(err); }
 
-				cb(null, assetPath);
+				fs.rename(tempAssetPath, assetPath, function (err) {
+					if (err) { return cb(err); }
+
+					cb(null, assetPath);
+				});
 			});
 		});
 	});
 }
 
 function download(opts, cb) {
-	var github = new GitHub({ repo: opts.repo || 'atom/electron', token: opts.token });
+	var repo = opts.repo || 'atom/electron';
+	var github = new GitHub({ repo: repo, token: opts.token });
 
 	if (!opts.version) {
 		return cb(new Error('Missing version'));
@@ -99,7 +104,7 @@ function download(opts, cb) {
 		});
 	}
 
-	cache(assetName, download, cb);
+	cache(assetName, repo, download, cb);
 }
 
 function getDarwinLibFFMpegPath(opts) {
