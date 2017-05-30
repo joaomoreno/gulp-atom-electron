@@ -90,6 +90,8 @@ The following options are **optional**:
 
 - **Darwin**
 	- `darwinIcon` - path to an `.icns` file
+	- `darwinHelpBookFolder` - the `CFBundleHelpBookFolder` value
+	- `darwinHelpBookName` - the `CFBundleHelpBookName` value
 	- `darwinBundleDocumentTypes` - ([reference](https://developer.apple.com/library/ios/documentation/filemanagement/conceptual/documentinteraction_topicsforios/Articles/RegisteringtheFileTypesYourAppSupports.html)) array of dictionaries, each containing the following structure:
 	 - `name` - the `CFBundleTypeName` value
 	 - `role` - the `CFBundleTypeRole` value
