@@ -87,6 +87,12 @@ function patchInfoPlist(opts) {
 			opts.copyright && (infoPlist['NSHumanReadableCopyright'] = opts.copyright);
 			infoPlist['CFBundleIconFile'] = opts.productName + '.icns';
 
+			//Register the Application Help Book if it exists
+			if (opts.darwinHelpBookFolder && opts.darwinHelpBookName){
+				infoPlist['CFBundleHelpBookFolder'] = opts.darwinHelpBookFolder;
+				infoPlist['CFBundleHelpBookName'] = opts.darwinHelpBookName;
+			}
+
 			if (opts.darwinBundleDocumentTypes) {
 				var iconsPaths = [];
 
