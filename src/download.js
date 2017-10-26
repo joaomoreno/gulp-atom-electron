@@ -83,7 +83,9 @@ function download(opts, cb) {
 				return cb(new Error('No asset for version ' + opts.version + ', platform ' + platform + ' and arch ' + arch + ' found'));
 			}
 
-			github.downloadAsset(asset, function (error, istream) {
+			github.downloadAsset(asset, function (err, istream) {
+				if (err) { return cb(err); }
+
 				if (process.stdout.isTTY && !opts.quiet) {
 					var bar = new ProgressBar('↓ ' + asset.name + ' [:bar] :percent', {
 						total: asset.size,
