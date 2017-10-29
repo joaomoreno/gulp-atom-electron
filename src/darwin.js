@@ -105,7 +105,8 @@ function patchInfoPlist(opts) {
 							CFBundleTypeRole: type.role,
 							CFBundleTypeOSTypes: type.ostypes,
 							CFBundleTypeExtensions: type.extensions,
-							CFBundleTypeIconFile: path.basename(type.iconFile)
+							CFBundleTypeIconFile: path.basename(type.iconFile),
+							LSItemContentTypes: type.utis
 						};
 					}));
 

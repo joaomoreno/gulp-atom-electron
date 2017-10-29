@@ -93,11 +93,12 @@ The following options are **optional**:
 	- `darwinHelpBookFolder` - the `CFBundleHelpBookFolder` value
 	- `darwinHelpBookName` - the `CFBundleHelpBookName` value
 	- `darwinBundleDocumentTypes` - ([reference](https://developer.apple.com/library/ios/documentation/filemanagement/conceptual/documentinteraction_topicsforios/Articles/RegisteringtheFileTypesYourAppSupports.html)) array of dictionaries, each containing the following structure:
-	 - `name` - the `CFBundleTypeName` value
-	 - `role` - the `CFBundleTypeRole` value
-	 - `ostypes` - the `CFBundleTypeOSTypes` value, a `string` array
-	 - `extensions` - the `CFBundleTypeExtensions` value, a `string` array of file extensions
-	 - `iconFile` - the `CFBundleTypeIconFile` value
+		- `name` - the `CFBundleTypeName` value
+		- `role` - the `CFBundleTypeRole` value
+		- `ostypes` - the `CFBundleTypeOSTypes` value, a `string` array
+		- `utis` - the `LSItemContentTypes` value, a `string` array
+		- `extensions` - the `CFBundleTypeExtensions` value, a `string` array of file extensions
+		- `iconFile` - the `CFBundleTypeIconFile` value
 
 - **Linux**
 	- `linuxExecutableName` - overwrite the name of the executable in Linux
