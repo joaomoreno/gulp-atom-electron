@@ -21,7 +21,7 @@ function getAppName(opts) {
 	return (opts.productAppName || opts.productName) + '.app';
 }
 
-exports.getAppPath = function(opts) {
+exports.getAppPath = function (opts) {
 	return getAppName(opts) + '/Contents/Resources/app';
 };
 
@@ -88,7 +88,7 @@ function patchInfoPlist(opts) {
 			infoPlist['CFBundleIconFile'] = opts.productName + '.icns';
 
 			//Register the Application Help Book if it exists
-			if (opts.darwinHelpBookFolder && opts.darwinHelpBookName){
+			if (opts.darwinHelpBookFolder && opts.darwinHelpBookName) {
 				infoPlist['CFBundleHelpBookFolder'] = opts.darwinHelpBookFolder;
 				infoPlist['CFBundleHelpBookName'] = opts.darwinHelpBookName;
 			}
@@ -100,14 +100,19 @@ function patchInfoPlist(opts) {
 					.concat(opts.darwinBundleDocumentTypes.map(function (type) {
 						iconsPaths.push(type.iconFile);
 
-						return {
+						var result = {
 							CFBundleTypeName: type.name,
 							CFBundleTypeRole: type.role,
 							CFBundleTypeOSTypes: type.ostypes,
 							CFBundleTypeExtensions: type.extensions,
-							CFBundleTypeIconFile: path.basename(type.iconFile),
-							LSItemContentTypes: type.utis
+							CFBundleTypeIconFile: path.basename(type.iconFile)
 						};
+
+						if (type.utis) {
+							result['LSItemContentTypes'] = type.utis;
+						}
+
+						return result;
 					}));
 
 				if (iconsPaths.length) {
@@ -261,7 +266,7 @@ function renameAppHelper(opts) {
 	});
 }
 
-exports.patch = function(opts) {
+exports.patch = function (opts) {
 	var pass = es.through();
 
 	var src = pass
