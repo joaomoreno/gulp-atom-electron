@@ -41,7 +41,8 @@ function patchIcon(opts) {
 	}
 
 	var resourcesPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Resources');
-	var originalIconPath = path.join(resourcesPath, 'atom.icns');
+	var iconName = semver.gte(opts.version, '0.24.0') ? 'electron.icns' : 'atom.icns';
+	var originalIconPath = path.join(resourcesPath, iconName);
 	var iconPath = path.join(resourcesPath, opts.productName + '.icns');
 	var pass = es.through();
 
