@@ -40,7 +40,8 @@
     "semver": "^4.3.4",
     "temp": "^0.8.1",
     "vinyl": "^0.5.1",
-    "vinyl-fs": "^0.3.13"
+    "vinyl-fs": "^0.3.13",
+    "which": "1.2.4"
   },
   "devDependencies": {
     "gulp-buffer": "0.0.2",
