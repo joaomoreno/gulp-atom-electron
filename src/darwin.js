@@ -88,6 +88,10 @@ function patchInfoPlist(opts) {
 			opts.copyright && (infoPlist['NSHumanReadableCopyright'] = opts.copyright);
 			infoPlist['CFBundleIconFile'] = opts.productName + '.icns';
 
+			if (opts.darwinExecutable) {
+				infoPlist['CFBundleExecutable'] = opts.darwinExecutable;
+			}
+
 			//Register the Application Help Book if it exists
 			if (opts.darwinHelpBookFolder && opts.darwinHelpBookName) {
 				infoPlist['CFBundleHelpBookFolder'] = opts.darwinHelpBookFolder;
@@ -240,6 +244,10 @@ function renameApp(opts) {
 			path.basename = opts.productAppName || opts.productName;
 		} else {
 			path.dirname = path.dirname.replace(originalAppNameRegexp, appName);
+		}
+
+		if (/Contents\/MacOS$/.test(path.dirname) && path.basename === 'Electron' && opts.darwinExecutable) {
+			path.basename = opts.darwinExecutable;
 		}
 	});
 }
