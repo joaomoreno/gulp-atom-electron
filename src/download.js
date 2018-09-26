@@ -84,7 +84,10 @@ function download(opts, cb) {
 			}
 
 			github.downloadAsset(asset, function (err, istream) {
-				if (err) { return cb(err); }
+				if (err) {
+					console.error('Error creating download stream to download ' + asset.name);
+					return cb(err);
+				}
 
 				if (process.stdout.isTTY && !opts.quiet) {
 					var bar = new ProgressBar('↓ ' + asset.name + ' [:bar] :percent', {
@@ -99,9 +102,18 @@ function download(opts, cb) {
 
 				var ostream = fs.createWriteStream(assetPath);
 				istream.pipe(ostream);
-				istream.on('error', cb);
-				ostream.on('error', cb);
-				ostream.on('close', function () { cb(); });
+				istream.on('error', function (err) {
+					console.error('Error in input stream while downloading ' + asset.name);
+					cb(err);
+				});
+				ostream.on('error', function (err) {
+					console.error('Error in output stream while downloading ' + asset.name);
+					cb(err);
+				});
+				ostream.on('close', function () {
+					console.log('Downloaded ' + asset.name);
+					cb();
+				});
 			});
 		});
 	}
