@@ -31,20 +31,19 @@
     "gulp-rename": "1.2.2",
     "gulp-symdest": "^1.0.0",
     "gulp-vinyl-zip": "^1.2.0",
-    "mkdirp": "^0.5.0",
+    "mkdirp": "^0.5.1",
     "object-assign": "^4.0.1",
-    "plist": "^1.1.0",
+    "plist": "^3.0.1",
     "progress": "^1.1.8",
     "rcedit": "^0.3.0",
     "rimraf": "^2.4.2",
     "semver": "^4.3.4",
-    "temp": "^0.8.1",
-    "vinyl": "^0.5.1",
-    "vinyl-fs": "^0.3.13"
+    "temp": "^0.8.3",
+    "vinyl": "^2.2.0",
+    "vinyl-fs": "^3.0.3"
   },
   "devDependencies": {
     "gulp-buffer": "0.0.2",
-    "gulp-vinyl-zip": "^1.2.2",
     "mocha": "^2.0.1"
   }
 }
