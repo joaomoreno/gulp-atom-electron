@@ -99,6 +99,7 @@ The following options are **optional**:
 		- `utis` - the `LSItemContentTypes` value, a `string` array
 		- `extensions` - the `CFBundleTypeExtensions` value, a `string` array of file extensions
 		- `iconFile` - the `CFBundleTypeIconFile` value
+	- `darwinForceDarkModeSupport` - Forces Mojave dark mode support to be enabled for older Electron versions
 
 - **Linux**
 	- `linuxExecutableName` - overwrite the name of the executable in Linux

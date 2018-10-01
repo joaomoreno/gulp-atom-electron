@@ -140,6 +140,10 @@ function patchInfoPlist(opts) {
 				})
 			}
 
+			if (opts.darwinForceDarkModeSupport) {
+				infoPlist['NSRequiresAquaSystemAppearance'] = false
+			}
+
 			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
 			that.emit('data', f);
 		});
