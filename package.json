@@ -44,6 +44,6 @@
   },
   "devDependencies": {
     "gulp-buffer": "0.0.2",
-    "mocha": "^2.0.1"
+    "mocha": "^5.2.0"
   }
 }
