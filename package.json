@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/joaomoreno/gulp-atom-electron",
   "dependencies": {
-    "event-stream": "^3.1.7",
+    "event-stream": "3.3.4",
     "github-releases-ms": "^0.5.0",
     "gulp-filter": "^4.0.0",
     "gulp-rename": "1.2.2",
