@@ -132,7 +132,7 @@ module.exports = function (opts) {
 	var downloadOpts = {
 		version: opts.version,
 		platform: opts.platform,
-		arch: opts.arch,
+		arch: ( opts.arch === 'arm' ? 'armv7l' : opts.arch ),
 		assetName: semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell',
 		token: opts.token,
 		quiet: opts.quiet,
