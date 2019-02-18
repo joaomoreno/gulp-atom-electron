@@ -1,6 +1,6 @@
 {
   "name": "gulp-atom-electron",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "description": "gulp plugin for packaging Electron applications",
   "main": "src/index.js",
   "scripts": {
