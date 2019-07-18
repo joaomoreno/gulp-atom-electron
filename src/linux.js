@@ -32,10 +32,28 @@ function renameApp(opts) {
 	});
 }
 
+/**
+ * For Electron versions that support the setuid sandbox on Linux, changes the permissions of
+ * the `chrome-sandbox` executable as appropriate.
+ *
+ * The sandbox helper executable must have the setuid (`+s` / `0o4000`) bit set.
+ *
+ * See: https://github.com/electron/electron/pull/17269#issuecomment-470671914
+ */
+function updateSandboxHelperPermissions() {
+	return es.mapSync(function (f) {
+		if (!f.isNull() && !f.isDirectory() && f.path === "chrome-sandbox") {
+			f.stat.mode = 0o4755;
+		}
+		return f;
+	});
+}
+
 exports.patch = function(opts) {
 	var pass = es.through();
 
 	var src = pass
+		.pipe(updateSandboxHelperPermissions())
 		.pipe(opts.keepDefaultApp ? es.through() : removeDefaultApp())
 		.pipe(renameApp(opts));
 
