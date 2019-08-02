@@ -263,17 +263,17 @@ function renameAppHelper(opts) {
 	var name = opts.productName;
 
 	return rename(function (path) {
-		var basenameMatch = /^Electron Helper( \w+)?$/.exec(path.basename);
+		var basenameMatch = /^Electron Helper( \(\w+\))?$/.exec(path.basename);
 
 		if (/Contents\/Frameworks/.test(path.dirname) && path.extname === '.app' && basenameMatch) {
 			var suffix = basenameMatch[1] || '';
 			path.basename = name + ' Helper' + suffix;
-		} else if (/Contents\/Frameworks\/Electron\ Helper( \w+)?\.app/.test(path.dirname)) {
-			var isInMacOS = /Contents\/Frameworks\/Electron\ Helper( \w+)?\.app\/Contents\/MacOS$/.test(path.dirname);
-			path.dirname = path.dirname.replace(/Electron\ Helper( \w+)?\.app/, name + ' Helper$1.app');
+		} else if (/Contents\/Frameworks\/Electron\ Helper( \(\w+\))?\.app/.test(path.dirname)) {
+			var isInMacOS = /Contents\/Frameworks\/Electron\ Helper( \(\w+\))?\.app\/Contents\/MacOS$/.test(path.dirname);
+			path.dirname = path.dirname.replace(/Electron\ Helper( \(\w+\))?\.app/, name + ' Helper$1.app');
 
-			if (isInMacOS && /^Electron Helper( \w+)?$/.test(path.basename) && path.extname === '') {
-				path.basename = path.basename.replace(/Electron\ Helper( \w+)?$/, name + ' Helper$1');
+			if (isInMacOS && /^Electron Helper( \(\w+\))?$/.test(path.basename) && path.extname === '') {
+				path.basename = path.basename.replace(/Electron\ Helper( \(\w+\))?$/, name + ' Helper$1');
 			}
 		}
 	});
