@@ -159,9 +159,6 @@ function patchInfoPlist(opts) {
 }
 
 function createEntitlementsPlist(opts) {
-	const contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
-	const entitlementsPlistPath = path.join(contentsPath, 'Entitlements.plist');
-
 	if (!opts.darwinEntitlements) {
 		return es.through();
 	}
