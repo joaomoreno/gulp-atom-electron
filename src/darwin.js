@@ -159,11 +159,12 @@ function patchInfoPlist(opts) {
 }
 
 function createEntitlementsPlist(opts) {
+	const input = es.through();
 	if (!opts.darwinEntitlements) {
-		return es.through();
+		return input;
 	}
 
-	const contentsPath = path.join('test', 'Contents');
+	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
 	const entitlementsPlistPath = path.join(contentsPath, 'Entitlements.plist');
 
 	const result = {};
@@ -176,8 +177,7 @@ function createEntitlementsPlist(opts) {
 		contents: Buffer.from(plist.build(result))
 	})
 
-	var input = es.through();
-	return es.merge(input, es.readArray([entitlementsFile]))
+	return es.duplex(input, es.merge(input, es.readArray([entitlementsFile])))
 }
 
 function patchHelperInfoPlist(opts) {
