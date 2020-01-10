@@ -158,6 +158,42 @@ function patchInfoPlist(opts) {
 	return es.duplex(input, es.merge(output, icons));
 }
 
+function patchEntitlementsPlist(opts) {
+	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
+	var entitlementsPlistPath = path.join(contentsPath, 'Entitlements.plist');
+
+	var icons = es.through();
+	var input = es.through();
+	var output = input.pipe(es.through(function (f) {
+		if (f.relative !== entitlementsPlistPath) {
+			return this.emit('data', f);
+		}
+
+		var that = this;
+		var contents = '';
+		f.contents.on('data', function (d) { contents += d; });
+
+		f.contents.on('end', function () {
+			var entitlementsPlist = plist.parse(contents.toString('utf8'));
+
+			if (opts.darwinEntitlements) {
+				let result = opts.darwinEntitlements.map((entl) => {
+					return { entl: true }
+				})
+
+				entitlementsPlist = { ...entitlementsPlist, ...result }
+			}
+
+			f.contents = new Buffer(plist.build(entitlementsPlist), 'utf8');
+			that.emit('data', f);
+		});
+	}, function () {
+		this.emit('end');
+	}));
+
+	return es.duplex(input, es.merge(output, icons));
+}
+
 function patchHelperInfoPlist(opts) {
 	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
 	var infoPlistPath = path.join(contentsPath, 'Info.plist');
@@ -287,6 +323,7 @@ exports.patch = function (opts) {
 		.pipe(patchIcon(opts))
 		.pipe(patchInfoPlist(opts))
 		.pipe(patchHelperInfoPlist(opts))
+		.pipe(patchEntitlementsPlist(opts))
 		.pipe(addCredits(opts))
 		.pipe(renameApp(opts))
 		.pipe(renameAppHelper(opts));
