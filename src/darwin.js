@@ -159,20 +159,20 @@ function patchInfoPlist(opts) {
 }
 
 function createEntitlementsPlist(opts) {
-	const input = es.through();
+	var input = es.through();
 	if (!opts.darwinEntitlements) {
 		return input;
 	}
 
 	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
-	const entitlementsPlistPath = path.join(contentsPath, 'Entitlements.plist');
+	var entitlementsPlistPath = path.join(contentsPath, 'Entitlements.plist');
 
-	const result = {};
+	var result = {};
 	opts.darwinEntitlements.forEach(element => {
 		result[element] = true;
 	});
 
-	const entitlementsFile = new File({
+	var entitlementsFile = new File({
 		path: entitlementsPlistPath,
 		contents: Buffer.from(plist.build(result))
 	})
