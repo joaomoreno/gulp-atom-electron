@@ -158,6 +158,28 @@ function patchInfoPlist(opts) {
 	return es.duplex(input, es.merge(output, icons));
 }
 
+function createEntitlementsPlist(opts) {
+	var input = es.through();
+	if (!opts.darwinEntitlements) {
+		return input;
+	}
+
+	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
+	var entitlementsPlistPath = path.join(contentsPath, 'Entitlements.plist');
+
+	var result = {};
+	opts.darwinEntitlements.forEach(element => {
+		result[element] = true;
+	});
+
+	var entitlementsFile = new File({
+		path: entitlementsPlistPath,
+		contents: Buffer.from(plist.build(result))
+	})
+
+	return es.duplex(input, es.merge(input, es.readArray([entitlementsFile])))
+}
+
 function patchHelperInfoPlist(opts) {
 	var contentsPath = path.join(getOriginalAppFullName(opts), 'Contents');
 	var infoPlistPath = path.join(contentsPath, 'Info.plist');
@@ -287,6 +309,7 @@ exports.patch = function (opts) {
 		.pipe(patchIcon(opts))
 		.pipe(patchInfoPlist(opts))
 		.pipe(patchHelperInfoPlist(opts))
+		.pipe(createEntitlementsPlist(opts))
 		.pipe(addCredits(opts))
 		.pipe(renameApp(opts))
 		.pipe(renameAppHelper(opts));
