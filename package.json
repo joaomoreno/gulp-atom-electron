@@ -25,8 +25,8 @@
   },
   "homepage": "https://github.com/joaomoreno/gulp-atom-electron",
   "dependencies": {
+    "@electron/get": "^1.10.0",
     "event-stream": "3.3.4",
-    "github-releases-ms": "^0.5.0",
     "gulp-filter": "^5.1.0",
     "gulp-rename": "1.2.2",
     "gulp-symdest": "^1.1.1",
@@ -43,7 +43,9 @@
     "vinyl-fs": "^3.0.3"
   },
   "devDependencies": {
+    "@octokit/rest": "^17.5.1",
     "gulp-buffer": "0.0.2",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "octokit": "^1.0.0-hello-world"
   }
 }
