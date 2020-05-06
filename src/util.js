@@ -1,50 +1,61 @@
 'use strict';
 
 const { Octokit } = require('@octokit/rest');
+const got = require('got');
 
 function startsWith (haystack, needle) {
 	return haystack.substr(0, needle.length) === needle;
 };
 
-async function getDownloadUrl(repo, { version, platform, arch, token }) {
-	const [owner, repository] = repo.split('/');
-	const octokit = new Octokit({ auth: `token ${token}`});
+async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
+	const [owner, repo] = repoUrl.split('/');
+	const octokit = new Octokit({ auth: token });
+	const releaseVersion = version.startsWith('v') ? version : `v${version}`;
 
 	const { data: release } = await octokit.repos.getReleaseByTag({
 		owner,
-		repository,
-		tag: version,
+		repo,
+		tag: releaseVersion
 	});
 
 	if (!release) {
-		return { error: `Release for ${version} not found` }
+		return { error: `Release for ${releaseVersion} not found` }
 	}
 
 	const { data: assets } = await octokit.repos.listAssetsForRelease({
 		owner,
-		repository,
+		repo,
 		release_id: release.id,
 	});
 
 	const asset = assets.find(asset => {
-		const targetName = `electron-${version}-${platform}-${arch}.zip`;
+		const targetName = `electron-${releaseVersion}-${platform}-${arch}.zip`;
 		return asset.name === targetName;
 	});
 
 	if (!asset) {
-		return { error: `Release asset for ${version} not found` }
+		return { error: `Release asset for ${releaseVersion} not found` }
 	}
 
-	const { headers: { location }} = await octokit.repos.getReleaseAsset({
+	const requestOptions = await octokit.repos.getReleaseAsset.endpoint({
 		owner,
-		repository,
+		repo,
 		asset_id: asset.id,
 		headers: {
-			accept: 'application/octet-stream'
+			Accept: 'application/octet-stream'
 		}
 	});
 
-	return { error: null, location };
+	const { url, headers } = requestOptions;
+	headers.authorization = `token ${token}`;
+
+	const response = await got(url, {
+		followRedirect: false,
+		method: 'HEAD',
+		headers
+	});
+
+	return { error: null, downloadUrl: response.headers.location, assetName: asset.name };
 }
 
 module.exports = {

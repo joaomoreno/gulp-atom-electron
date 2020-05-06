@@ -2,6 +2,8 @@
 
 var path = require('path');
 const { downloadArtifact } = require('@electron/get');
+const { getDownloadUrl } = require('./util');
+const ProgressBar = require('progress');
 var semver = require('semver');
 var rename = require('gulp-rename');
 var es = require('event-stream');
@@ -10,6 +12,8 @@ var filter = require('gulp-filter');
 var assign = require('object-assign');
 
 function download(opts, cb) {
+	let bar;
+
 	if (!opts.version) {
 		return cb(new Error('Missing version'));
 	}
@@ -30,25 +34,54 @@ function download(opts, cb) {
 	const downloadOptions = {
 		version: opts.version,
 		platform: opts.platform,
+		getProgressCallback: (progress) => {
+			if (bar) bar.update(progress.percent);
+		},
 		arch,
-		artifactName: opts.assetName,
+		token: opts.token
 	};
 
-	(opts.repo ? getDownloadUrl(opts.repo, downloadOptions) : Promise.resolve({})).then(({
-		err, downloadURL
-	}) => {
-		if (err) return cb(err)
+	if (opts.repo) {
+		getDownloadUrl(opts.repo, downloadOptions)
+		.then(({ error, downloadUrl, assetName }) => {
+			if (error) return cb(error)
+	
+			downloadOptions['mirrorOptions'] = {
+				mirror: downloadUrl,
+				customDir: ' ',
+				customFilename: ' '
+			};
 
-		if (downloadURL) {
-			downloadOptions['mirrorOptions'] = { mirror: downloadUrl }
-		}
+			downloadOptions['artifactName'] = assetName;
+			downloadOptions['unsafelyDisableChecksums'] = true;
 
-		downloadArtifact(downloadOptions).then(zipFilePath => {
-			return cb(null, zipFilePath)
-		}).catch(err => {
+			bar = new ProgressBar(
+				`Downloading ${path.basename(downloadUrl)}: [:bar] :percent ETA: :eta seconds `,
+				{
+					curr: 0,
+					total: 100,
+				},
+			);
+
+			const start = new Date();
+			bar.start = start;
+	
+			downloadArtifact(downloadOptions).then(zipFilePath => {
+				return cb(null, zipFilePath)
+			}).catch(error => {
+				return cb(error); 
+			});
+		})
+		.catch(err => {
 			return cb(err); 
 		});
-	});
+	} else {
+		downloadArtifact(downloadOptions).then(zipFilePath => {
+			return cb(null, zipFilePath)
+		}).catch(error => {
+			return cb(error); 
+		});
+	}
 }
 
 function getDarwinLibFFMpegPath(opts) {
