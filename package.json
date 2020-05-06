@@ -33,6 +33,7 @@
     "gulp-vinyl-zip": "^2.1.2",
     "mkdirp": "^0.5.1",
     "object-assign": "^4.0.1",
+    "@octokit/rest": "^17.5.1",
     "plist": "^3.0.1",
     "progress": "^1.1.8",
     "rcedit": "^0.3.0",
@@ -43,9 +44,7 @@
     "vinyl-fs": "^3.0.3"
   },
   "devDependencies": {
-    "@octokit/rest": "^17.5.1",
     "gulp-buffer": "0.0.2",
-    "mocha": "^5.2.0",
-    "octokit": "^1.0.0-hello-world"
+    "mocha": "^5.2.0"
   }
 }
