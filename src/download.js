@@ -31,13 +31,28 @@ function download(opts, cb) {
 		}
 	}
 
+	const artifactName = opts.assetName ? opts.assetName : 'electron'
+
 	const downloadOpts = {
 		version: opts.version,
 		platform: opts.platform,
 		arch,
-		artifactName: opts.assetName ? opts.assetName : 'electron',
-		token: opts.token
+		artifactName,
+		token: opts.token,
+		downloadOptions: {
+			getProgressCallback: (progress) => {
+				if (bar) bar.update(progress.percent);
+			},
+		}
 	};
+
+	bar = new ProgressBar(
+		`Downloading ${artifactName}: [:bar] :percent ETA: :eta seconds `,
+		{
+			curr: 0,
+			total: 100,
+		},
+	);
 
 	if (opts.repo) {
 		getDownloadUrl(opts.repo, downloadOpts)
@@ -51,27 +66,10 @@ function download(opts, cb) {
 			downloadOpts.artifactName = assetName;
 			downloadOpts.unsafelyDisableChecksums = true;
 
-			bar = new ProgressBar(
-				`Downloading ${assetName}: [:bar] :percent ETA: :eta seconds `,
-				{
-					curr: 0,
-					total: 100,
-				},
-			);
-
 			const start = new Date();
 			bar.start = start;
 
-			const options = {
-				...downloadOpts,
-				downloadOptions: {
-					getProgressCallback: (progress) => {
-						if (bar) bar.update(progress.percent);
-					},
-				}
-			}
-	
-			downloadArtifact(options).then(zipFilePath => {
+			downloadArtifact(downloadOpts).then(zipFilePath => {
 				return cb(null, zipFilePath)
 			}).catch(error => {
 				return cb(error); 
@@ -81,6 +79,9 @@ function download(opts, cb) {
 			return cb(err); 
 		});
 	} else {
+		const start = new Date();
+		bar.start = start;
+
 		downloadArtifact(downloadOpts).then(zipFilePath => {
 			return cb(null, zipFilePath)
 		}).catch(error => {
