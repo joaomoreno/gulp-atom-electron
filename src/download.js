@@ -1,11 +1,9 @@
 'use strict';
 
-var os = require('os');
 var path = require('path');
-var fs = require('fs');
-var mkdirp = require('mkdirp');
-var GitHub = require('github-releases-ms');
-var ProgressBar = require('progress');
+const { downloadArtifact } = require('@electron/get');
+const { getDownloadUrl } = require('./util');
+const ProgressBar = require('progress');
 var semver = require('semver');
 var rename = require('gulp-rename');
 var es = require('event-stream');
@@ -13,112 +11,83 @@ var zfs = require('gulp-vinyl-zip');
 var filter = require('gulp-filter');
 var assign = require('object-assign');
 
-var cachePath = path.join(os.tmpdir(), 'gulp-electron-cache');
-
-function cache(assetName, repo, onMiss, cb) {
-	var assetFolder = path.join(cachePath, repo);
-	mkdirp(assetFolder, function (err) {
-		if (err) { return cb(err); }
-
-		var assetPath = path.join(assetFolder, assetName);
-
-		fs.exists(assetPath, function (exists) {
-			if (exists) { return cb(null, assetPath); }
-
-			var tempAssetPath = assetPath + '.tmp';
-			onMiss(tempAssetPath, function (err) {
-				if (err) { return cb(err); }
-
-				fs.rename(tempAssetPath, assetPath, function (err) {
-					if (err) { return cb(err); }
-
-					cb(null, assetPath);
-				});
-			});
-		});
-	});
-}
-
 function download(opts, cb) {
-	var repo = opts.repo || 'atom/electron';
-	var github = new GitHub({ repo: repo, token: opts.token });
+	let bar;
 
 	if (!opts.version) {
 		return cb(new Error('Missing version'));
 	}
 
-	var platform = opts.platform;
-	if (!platform) {
+	if (!opts.platform) {
 		return cb(new Error('Missing platform'));
 	}
 
-	var arch = opts.arch;
-
+	let arch = opts.arch;
 	if (!arch) {
-		switch (platform) {
+		switch (opts.platform) {
 			case 'darwin': arch = 'x64'; break;
 			case 'win32': arch = 'ia32'; break;
 			case 'linux': arch = 'ia32'; break;
 		}
 	}
 
-	var version = 'v' + opts.version;
-	var assetName = [opts.assetName, version, platform, arch].join('-') + '.zip';
+	const artifactName = opts.assetName ? opts.assetName : 'electron'
 
-	function download(assetPath, cb) {
-		github.getReleases({ tag_name: version }, function (err, releases) {
-			if (err) { return cb(err); }
+	const downloadOpts = {
+		version: opts.version,
+		platform: opts.platform,
+		arch,
+		artifactName,
+		token: opts.token,
+		downloadOptions: {
+			getProgressCallback: (progress) => {
+				if (bar) bar.update(progress.percent);
+			},
+		}
+	};
 
-			var release = releases[0];
+	bar = new ProgressBar(
+		`Downloading ${artifactName}: [:bar] :percent ETA: :eta seconds `,
+		{
+			curr: 0,
+			total: 100,
+		},
+	);
 
-			if (!release) {
-				return cb(new Error('No release ' + opts.version + ' found'));
-			}
+	if (opts.repo) {
+		getDownloadUrl(opts.repo, downloadOpts)
+		.then(({ error, downloadUrl, assetName }) => {
+			if (error) return cb(error)
+	
+			downloadOpts['mirrorOptions'] = {
+				resolveAssetURL: () => downloadUrl
+			};
 
-			var asset = release.assets.filter(function (asset) {
-				return asset.name === assetName;
-			})[0];
+			downloadOpts.artifactName = assetName;
+			downloadOpts.unsafelyDisableChecksums = true;
 
-			if (!asset) {
-				return cb(new Error('No asset for version ' + opts.version + ', platform ' + platform + ' and arch ' + arch + ' found'));
-			}
+			const start = new Date();
+			bar.start = start;
 
-			github.downloadAsset(asset, function (err, istream) {
-				if (err) {
-					console.error('Error creating download stream to download ' + asset.name);
-					return cb(err);
-				}
-
-				if (process.stdout.isTTY && !opts.quiet) {
-					var bar = new ProgressBar('↓ ' + asset.name + ' [:bar] :percent', {
-						total: asset.size,
-						width: 20
-					});
-
-					istream.on('data', function (chunk) { bar.tick(chunk.length); });
-				} else {
-					console.log('Downloading ' + asset.name + '...');
-				}
-
-				var ostream = fs.createWriteStream(assetPath);
-				istream.pipe(ostream);
-				istream.on('error', function (err) {
-					console.error('Error in input stream while downloading ' + asset.name);
-					cb(err);
-				});
-				ostream.on('error', function (err) {
-					console.error('Error in output stream while downloading ' + asset.name);
-					cb(err);
-				});
-				ostream.on('close', function () {
-					console.log('Downloaded ' + asset.name);
-					cb();
-				});
+			downloadArtifact(downloadOpts).then(zipFilePath => {
+				return cb(null, zipFilePath)
+			}).catch(error => {
+				return cb(error); 
 			});
+		})
+		.catch(err => {
+			return cb(err); 
+		});
+	} else {
+		const start = new Date();
+		bar.start = start;
+
+		downloadArtifact(downloadOpts).then(zipFilePath => {
+			return cb(null, zipFilePath)
+		}).catch(error => {
+			return cb(error); 
 		});
 	}
-
-	cache(assetName, repo, download, cb);
 }
 
 function getDarwinLibFFMpegPath(opts) {
