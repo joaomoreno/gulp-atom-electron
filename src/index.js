@@ -24,7 +24,7 @@ function _electron(opts) {
 
 	var buffer = [];
 
-	var src = pass.pipe(es.through(function (f) {
+	var src = pass.pipe(es.through(async (f) => {
 		if (!buffer) {
 			return;
 		}
@@ -49,8 +49,8 @@ function _electron(opts) {
 		var sources = es.merge(es.readArray(buffer), pass)
 			.pipe(moveApp(platform, opts));
 
-		var electron = download(opts)
-			.pipe(platform.patch(opts));
+		const dl = await download(opts);
+		const electron = dl.pipe(platform.patch(opts));
 
 		es.merge(sources, electron).pipe(result);
 

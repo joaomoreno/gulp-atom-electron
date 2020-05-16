@@ -11,15 +11,15 @@ var zfs = require('gulp-vinyl-zip');
 var filter = require('gulp-filter');
 var assign = require('object-assign');
 
-function download(opts, cb) {
+async function downloadAssets(opts) {
 	let bar;
 
 	if (!opts.version) {
-		return cb(new Error('Missing version'));
+		throw new Error('Missing version');
 	}
 
 	if (!opts.platform) {
-		return cb(new Error('Missing platform'));
+		throw new Error('Missing platform');
 	}
 
 	let arch = opts.arch;
@@ -55,50 +55,32 @@ function download(opts, cb) {
 	);
 
 	if (opts.repo) {
-		getDownloadUrl(opts.repo, downloadOpts)
-		.then(({ error, downloadUrl, assetName }) => {
-			if (error) return cb(error)
-	
-			downloadOpts['mirrorOptions'] = {
-				resolveAssetURL: () => downloadUrl
-			};
+		const { downloadUrl, assetName } = await getDownloadUrl(opts.repo, downloadOpts);
 
-			downloadOpts.artifactName = assetName;
-			downloadOpts.unsafelyDisableChecksums = true;
+		downloadOpts['mirrorOptions'] = {
+			resolveAssetURL: () => downloadUrl
+		};
 
-			const start = new Date();
-			bar.start = start;
-
-			downloadArtifact(downloadOpts).then(zipFilePath => {
-				return cb(null, zipFilePath)
-			}).catch(error => {
-				return cb(error); 
-			});
-		})
-		.catch(err => {
-			return cb(err); 
-		});
-	} else {
-		const start = new Date();
-		bar.start = start;
-
-		downloadArtifact(downloadOpts).then(zipFilePath => {
-			return cb(null, zipFilePath)
-		}).catch(error => {
-			return cb(error); 
-		});
+		downloadOpts.artifactName = assetName;
+		downloadOpts.unsafelyDisableChecksums = true;
 	}
+
+	const start = new Date();
+	bar.start = start;
+
+	const zipFilePath = await downloadArtifact(downloadOpts);
+	return zipFilePath;
 }
 
-function getDarwinLibFFMpegPath(opts) {
+function getDarwinLibFFMpegPath() {
 	return path.join('Electron.app', 'Contents', 'Frameworks', 'Electron Framework.framework', 'Versions', 'A', 'Libraries', 'libffmpeg.dylib');
 }
 
-module.exports = function (opts) {
-	var electron = es.through();
-	var ffmpeg = es.through();
+async function download(opts) {
+	const electron = es.through();
+	const ffmpeg = es.through();
 
-	var downloadOpts = {
+	const downloadOpts = {
 		version: opts.version,
 		platform: opts.platform,
 		arch: ( opts.arch === 'arm' ? 'armv7l' : opts.arch ),
@@ -108,25 +90,29 @@ module.exports = function (opts) {
 		repo: opts.repo
 	};
 
-	download(downloadOpts, function (err, vanilla) {
-		if (err) { return electron.emit('error', err); }
-		zfs.src(vanilla)
+	try {
+		const electronAssets = await downloadAssets(downloadOpts);
+		zfs.src(electronAssets)
 			.pipe(opts.ffmpegChromium ? filter(['**', '!**/*ffmpeg.*']) : es.through())
 			.pipe(electron);
-	});
+		
+		if (opts.ffmpegChromium) {
+			const ffmpegAsset = await downloadAssets(assign({}, downloadOpts, {
+				assetName: 'ffmpeg'
+			}));
 
-	if (opts.ffmpegChromium) {
-		download(assign({}, downloadOpts, { assetName: 'ffmpeg' }), function (err, vanilla) {
-			if (err) { return ffmpeg.emit('error', err); }
-
-			zfs.src(vanilla)
+			zfs.src(ffmpegAsset)
 				.pipe(filter('**/*ffmpeg.*'))
-				.pipe(opts.platform === 'darwin' ? rename(getDarwinLibFFMpegPath(opts)) : es.through())
+				.pipe(opts.platform === 'darwin' ? rename(getDarwinLibFFMpegPath()) : es.through())
 				.pipe(ffmpeg);
-		});
-	} else {
-		ffmpeg = es.readArray([]);
+		} else {
+			ffmpeg = es.readArray([]);
+		}
+	
+		return es.merge(electron, ffmpeg);
+	} catch(error) {
+		return electron.emit('error', error);
 	}
+}
 
-	return es.merge(electron, ffmpeg);
-};
+module.exports = download;

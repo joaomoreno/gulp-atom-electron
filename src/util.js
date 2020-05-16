@@ -19,7 +19,7 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
 	});
 
 	if (!release) {
-		return { error: `Release for ${releaseVersion} not found` }
+		throw new Error(`Release for ${releaseVersion} not found`)
 	}
 
 	const { data: assets } = await octokit.repos.listAssetsForRelease({
@@ -34,7 +34,7 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
 	});
 
 	if (!asset) {
-		return { error: `Release asset for ${releaseVersion} not found` }
+		throw new Error(`Release asset for ${releaseVersion} not found`)
 	}
 
 	const requestOptions = await octokit.repos.getReleaseAsset.endpoint({
@@ -55,7 +55,7 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
 		headers
 	});
 
-	return { error: null, downloadUrl: response.headers.location, assetName: asset.name };
+	return { downloadUrl: response.headers.location, assetName: asset.name };
 }
 
 module.exports = {
