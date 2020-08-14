@@ -6,11 +6,10 @@ var es = require('event-stream');
 var vfs = require('vinyl-fs');
 var File = require('vinyl');
 var rename = require('gulp-rename');
-var semver = require('semver');
 var util = require('./util');
 
 function getOriginalAppName(opts) {
-	return semver.gte(opts.version, '0.24.0') ? 'Electron' : 'Atom';
+	return 'Electron';
 }
 
 function getOriginalAppFullName(opts) {
@@ -41,7 +40,7 @@ function patchIcon(opts) {
 	}
 
 	var resourcesPath = path.join(getOriginalAppFullName(opts), 'Contents', 'Resources');
-	var iconName = semver.gte(opts.version, '0.24.0') ? 'electron.icns' : 'atom.icns';
+	var iconName = 'electron.icns';
 	var originalIconPath = path.join(resourcesPath, iconName);
 	var iconPath = path.join(resourcesPath, opts.productName + '.icns');
 	var pass = es.through();

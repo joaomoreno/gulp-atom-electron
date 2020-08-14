@@ -8,7 +8,6 @@ var rename = require('gulp-rename');
 var rimraf = require('rimraf');
 var symdest = require('gulp-symdest');
 var download = require('./download');
-var semver = require('semver');
 
 function moveApp(platform, opts) {
 	var appPath = platform.getAppPath(opts);
@@ -67,10 +66,6 @@ function electron(opts) {
 
 	if (!opts.platform) {
 		throw new Error('Missing Electron option: platform.');
-	}
-
-	if (opts.ffmpegChromium && !semver.gte(opts.version, '0.36.7')) {
-		throw new Error('ffmpegChromium option is only supported in Electron versions >= v0.36.8.');
 	}
 
 	if (opts.productName) {

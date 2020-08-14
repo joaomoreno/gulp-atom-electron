@@ -6,7 +6,6 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var GitHub = require('github-releases-ms');
 var ProgressBar = require('progress');
-var semver = require('semver');
 var rename = require('gulp-rename');
 var es = require('event-stream');
 var zfs = require('gulp-vinyl-zip');
@@ -40,7 +39,7 @@ function cache(assetName, repo, onMiss, cb) {
 }
 
 function download(opts, cb) {
-	var repo = opts.repo || 'atom/electron';
+	var repo = opts.repo || 'electron/electron';
 	var github = new GitHub({ repo: repo, token: opts.token });
 
 	if (!opts.version) {
@@ -133,7 +132,7 @@ module.exports = function (opts) {
 		version: opts.version,
 		platform: opts.platform,
 		arch: ( opts.arch === 'arm' ? 'armv7l' : opts.arch ),
-		assetName: semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell',
+		assetName: 'electron',
 		token: opts.token,
 		quiet: opts.quiet,
 		repo: opts.repo

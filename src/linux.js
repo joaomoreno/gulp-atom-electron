@@ -3,11 +3,10 @@
 var path = require('path');
 var es = require('event-stream');
 var rename = require('gulp-rename');
-var semver = require('semver');
 var util = require('./util');
 
 function getOriginalAppName(opts) {
-	return semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom';
+	return 'electron';
 }
 
 exports.getAppPath = function(opts) {

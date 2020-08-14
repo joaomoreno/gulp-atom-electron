@@ -6,11 +6,10 @@ var es = require('event-stream');
 var rename = require('gulp-rename');
 var temp = require('temp').track();
 var rcedit = require('rcedit');
-var semver = require('semver');
 var util = require('./util');
 
 function getOriginalAppName(opts) {
-	return semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom';
+	return 'electron';
 }
 
 function getOriginalAppFullName(opts) {
