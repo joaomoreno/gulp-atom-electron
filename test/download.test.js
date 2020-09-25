@@ -27,6 +27,25 @@ describe('download', function () {
 		}).catch(cb);
 	});
 
+	it('should download symbols', function (cb) {
+		var symbols = false;
+
+		download({ version: '7.2.4', platform: 'win32', symbols: true, token: process.env['GITHUB_TOKEN'] }).then((stream) => {
+			stream
+				.on('data', function (f) {
+					console.log(f.relative);
+					if (f.relative === 'breakpad_symbols') {
+						symbols = true;
+					}
+				})
+				.on('error', cb)
+				.on('end', function () {
+					assert(symbols);
+					cb();
+				});
+		}).catch(cb);
+	});
+
 	it('should replace ffmpeg', function (cb) {
 		var ffmpegSeen = false;
 
