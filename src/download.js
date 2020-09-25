@@ -78,7 +78,7 @@ function getDarwinLibFFMpegPath() {
 
 async function download(opts) {
 	const electron = es.through();
-	const ffmpeg = es.through();
+	let ffmpeg = es.through();
 
 	const downloadOpts = {
 		version: opts.version,
