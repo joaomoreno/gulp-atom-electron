@@ -6,6 +6,8 @@ Please use the official way of requiring Electron: https://electronjs.org/docs/t
 
 # gulp-atom-electron
 
+[![Build Status](https://dev.azure.com/vscode/gulp-atom-electron/_apis/build/status/joaomoreno.gulp-atom-electron?branchName=master)](https://dev.azure.com/vscode/gulp-atom-electron/_build/latest?definitionId=38&branchName=master)
+
 ### Installation
 
 ```bash
