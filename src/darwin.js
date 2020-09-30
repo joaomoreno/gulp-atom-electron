@@ -144,7 +144,7 @@ function patchInfoPlist(opts) {
 				infoPlist['NSRequiresAquaSystemAppearance'] = false
 			}
 
-			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
+			f.contents = Buffer.from(plist.build(infoPlist), 'utf8');
 			that.emit('data', f);
 		});
 	}, function () {
@@ -222,7 +222,7 @@ function patchHelperInfoPlist(opts) {
 				infoPlist['CFBundleExecutable'] = infoPlist['CFBundleName'];
 			}
 
-			f.contents = new Buffer(plist.build(infoPlist), 'utf8');
+			f.contents = Buffer.from(plist.build(infoPlist), 'utf8');
 			that.emit('data', f);
 		});
 	}, function () {
