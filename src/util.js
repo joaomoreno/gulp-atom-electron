@@ -2,7 +2,6 @@
 
 const { Octokit } = require('@octokit/rest');
 const got = require('got');
-const debug = require('debug')('getDownloadUrl')
 
 function startsWith (haystack, needle) {
 	return haystack.substr(0, needle.length) === needle;
@@ -13,7 +12,6 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
 	const octokit = new Octokit({ auth: token });
 	const releaseVersion = version.startsWith('v') ? version : `v${version}`;
 
-	debug(`Beginning asset download from ${repoUrl} for ${releaseVersion}`)
 	const { data: release } = await octokit.repos.getReleaseByTag({
 		owner,
 		repo,
@@ -21,10 +19,9 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
 	});
 
 	if (!release) {
-		throw new Error(`Release for ${releaseVersion} not found`)
+		return { error: `Release for ${releaseVersion} not found` }
 	}
 
-	debug(`Got release for ${releaseVersion}`)
 	const { data: assets } = await octokit.repos.listAssetsForRelease({
 		owner,
 		repo,
@@ -37,10 +34,9 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
 	});
 
 	if (!asset) {
-		throw new Error(`Release asset for ${releaseVersion} not found`)
+		return { error: `Release asset for ${releaseVersion} not found` }
 	}
 
-	debug(`Got asset ${asset.name}`)
 	const requestOptions = await octokit.repos.getReleaseAsset.endpoint({
 		owner,
 		repo,
@@ -53,15 +49,13 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
 	const { url, headers } = requestOptions;
 	headers.authorization = `token ${token}`;
 
-	debug(`Fetching asset url from ${url}`)
 	const response = await got(url, {
 		followRedirect: false,
 		method: 'HEAD',
 		headers
 	});
 
-	debug(`Got download url ${response.headers.location}`)
-	return { downloadUrl: response.headers.location, assetName: asset.name };
+	return { error: null, downloadUrl: response.headers.location, assetName: asset.name };
 }
 
 module.exports = {
