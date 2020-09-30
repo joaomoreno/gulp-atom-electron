@@ -38,6 +38,7 @@ async function downloadAssets(opts) {
 		platform: opts.platform,
 		arch,
 		artifactName,
+		artifactSuffix: opts.artifactSuffix,
 		token: opts.token,
 		downloadOptions: {
 			getProgressCallback: (progress) => {
@@ -78,19 +79,44 @@ function getDarwinLibFFMpegPath() {
 
 async function download(opts) {
 	const electron = es.through();
-	const ffmpeg = es.through();
+	let ffmpeg = es.through();
+	let symbols = es.through();
+	let pdbs = es.through();
 
 	const downloadOpts = {
 		version: opts.version,
 		platform: opts.platform,
-		arch: ( opts.arch === 'arm' ? 'armv7l' : opts.arch ),
+		arch: (opts.arch === 'arm' ? 'armv7l' : opts.arch),
 		assetName: semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell',
 		token: opts.token,
 		quiet: opts.quiet,
-		repo: opts.repo
+		repo: opts.repo,
+		symbols: opts.symbols,
+		pdbs: opts.pdbs
 	};
 
 	try {
+		if (opts.symbols) {
+			// Symbols only
+			const symbolsAssets = await downloadAssets(assign({}, downloadOpts, {
+				artifactSuffix: 'symbols'
+			}));
+
+			zfs.src(symbolsAssets)
+				.pipe(symbols);
+
+			return symbols;
+		} else if (opts.pdbs) {
+			// pdbs only
+			const pdbAssets = await downloadAssets(assign({}, downloadOpts, {
+				artifactSuffix: 'pdb'
+			}));
+
+			zfs.src(pdbAssets)
+				.pipe(pdbs);
+
+			return pdbs;
+		}
 		const electronAssets = await downloadAssets(downloadOpts);
 		zfs.src(electronAssets)
 			.pipe(opts.ffmpegChromium ? filter(['**', '!**/*ffmpeg.*']) : es.through())
@@ -108,7 +134,7 @@ async function download(opts) {
 		} else {
 			ffmpeg = es.readArray([]);
 		}
-	
+ 
 		return es.merge(electron, ffmpeg);
 	} catch(error) {
 		return electron.emit('error', error);
