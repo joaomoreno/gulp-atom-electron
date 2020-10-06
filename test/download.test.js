@@ -30,7 +30,7 @@ describe('download', function () {
 
 		download({ version: '7.2.4', platform: 'win32', symbols: true, token: process.env['GITHUB_TOKEN'] })
 			.on('data', function (f) {
-				if (/breakpad_symbols\\electron.exe.pdb\\[A-Ea-e0-9]+\\electron.exe.sym/.test(f.relative)) {
+				if (/breakpad_symbols[\\\/]electron.exe.pdb[\\\/][A-Ea-e0-9]+[\\\/]electron.exe.sym/.test(f.relative)) {
 					didSeeSymbols = true;
 				}
 			})
