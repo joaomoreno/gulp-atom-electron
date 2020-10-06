@@ -38,6 +38,7 @@ function download(opts, cb) {
 		platform: opts.platform,
 		arch,
 		artifactName,
+		artifactSuffix: opts.artifactSuffix,
 		token: opts.token,
 		downloadOptions: {
 			getProgressCallback: (progress) => {
@@ -56,28 +57,28 @@ function download(opts, cb) {
 
 	if (opts.repo) {
 		getDownloadUrl(opts.repo, downloadOpts)
-		.then(({ error, downloadUrl, assetName }) => {
-			if (error) return cb(error)
-	
-			downloadOpts['mirrorOptions'] = {
-				resolveAssetURL: () => downloadUrl
-			};
+			.then(({ error, downloadUrl, assetName }) => {
+				if (error) return cb(error)
 
-			downloadOpts.artifactName = assetName;
-			downloadOpts.unsafelyDisableChecksums = true;
+				downloadOpts['mirrorOptions'] = {
+					resolveAssetURL: () => downloadUrl
+				};
 
-			const start = new Date();
-			bar.start = start;
+				downloadOpts.artifactName = assetName;
+				downloadOpts.unsafelyDisableChecksums = true;
 
-			downloadArtifact(downloadOpts).then(zipFilePath => {
-				return cb(null, zipFilePath)
-			}).catch(error => {
-				return cb(error); 
+				const start = new Date();
+				bar.start = start;
+
+				downloadArtifact(downloadOpts).then(zipFilePath => {
+					return cb(null, zipFilePath)
+				}).catch(error => {
+					return cb(error);
+				});
+			})
+			.catch(err => {
+				return cb(err);
 			});
-		})
-		.catch(err => {
-			return cb(err); 
-		});
 	} else {
 		const start = new Date();
 		bar.start = start;
@@ -85,7 +86,7 @@ function download(opts, cb) {
 		downloadArtifact(downloadOpts).then(zipFilePath => {
 			return cb(null, zipFilePath)
 		}).catch(error => {
-			return cb(error); 
+			return cb(error);
 		});
 	}
 }
@@ -95,38 +96,63 @@ function getDarwinLibFFMpegPath(opts) {
 }
 
 module.exports = function (opts) {
-	var electron = es.through();
-	var ffmpeg = es.through();
+	var electron = es.readArray([]);
+	var ffmpeg = es.readArray([]);
+	var symbols = es.readArray([]);
+	var pdbs = es.readArray([]);
 
 	var downloadOpts = {
 		version: opts.version,
 		platform: opts.platform,
-		arch: ( opts.arch === 'arm' ? 'armv7l' : opts.arch ),
+		arch: (opts.arch === 'arm' ? 'armv7l' : opts.arch),
 		assetName: semver.gte(opts.version, '0.24.0') ? 'electron' : 'atom-shell',
 		token: opts.token,
 		quiet: opts.quiet,
-		repo: opts.repo
+		repo: opts.repo,
+		symbols: opts.symbols,
+		pdbs: opts.pdbs
 	};
 
-	download(downloadOpts, function (err, vanilla) {
-		if (err) { return electron.emit('error', err); }
-		zfs.src(vanilla)
-			.pipe(opts.ffmpegChromium ? filter(['**', '!**/*ffmpeg.*']) : es.through())
-			.pipe(electron);
-	});
+	if (opts.symbols) {
+		symbols = es.through();
 
-	if (opts.ffmpegChromium) {
-		download(assign({}, downloadOpts, { assetName: 'ffmpeg' }), function (err, vanilla) {
-			if (err) { return ffmpeg.emit('error', err); }
+		download(assign({}, downloadOpts, { artifactSuffix: 'symbols' }), function (err, symbolsAssets) {
+			if (err) { return symbols.emit('error', err); }
+			
+			zfs.src(symbolsAssets)
+				.pipe(symbols);
+		});
+	} else if (opts.pdbs) {
+		pdbs = es.through();
 
-			zfs.src(vanilla)
-				.pipe(filter('**/*ffmpeg.*'))
-				.pipe(opts.platform === 'darwin' ? rename(getDarwinLibFFMpegPath(opts)) : es.through())
-				.pipe(ffmpeg);
+		download(assign({}, downloadOpts, { artifactSuffix: 'pdb' }), function (err, pdbAssets) {
+			if (err) { return pdbs.emit('error', err); }
+
+			zfs.src(pdbAssets)
+				.pipe(pdbs);
 		});
 	} else {
-		ffmpeg = es.readArray([]);
-	}
+		electron = es.through();
 
-	return es.merge(electron, ffmpeg);
+		download(downloadOpts, function (err, vanilla) {
+			if (err) { return electron.emit('error', err); }
+			zfs.src(vanilla)
+				.pipe(opts.ffmpegChromium ? filter(['**', '!**/*ffmpeg.*']) : es.through())
+				.pipe(electron);
+		});
+	
+		if (opts.ffmpegChromium) {
+			ffmpeg = es.through();
+			download(assign({}, downloadOpts, { assetName: 'ffmpeg' }), function (err, vanilla) {
+				if (err) { return ffmpeg.emit('error', err); }
+	
+				zfs.src(vanilla)
+					.pipe(filter('**/*ffmpeg.*'))
+					.pipe(opts.platform === 'darwin' ? rename(getDarwinLibFFMpegPath(opts)) : es.through())
+					.pipe(ffmpeg);
+			});
+		}
+	}
+	
+	return es.merge(electron, ffmpeg, symbols, pdbs);
 };

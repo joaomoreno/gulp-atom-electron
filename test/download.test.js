@@ -9,7 +9,7 @@ var download = require('../src/download');
 describe('download', function () {
 	this.timeout(1000 * 60 * 5);
 
-	it('should work', function(cb) {
+	it('should work', function (cb) {
 		var didSeeInfoPList = false;
 
 		download({ version: '7.2.4', platform: 'darwin', token: process.env['GITHUB_TOKEN'] })
@@ -25,7 +25,23 @@ describe('download', function () {
 			});
 	});
 
-	it('should replace ffmpeg', function(cb) {
+	it('should download symbols', function (cb) {
+		var didSeeSymbols = false;
+
+		download({ version: '7.2.4', platform: 'win32', symbols: true, token: process.env['GITHUB_TOKEN'] })
+			.on('data', function (f) {
+				if (/breakpad_symbols[\\\/]electron.exe.pdb[\\\/][A-Ea-e0-9]+[\\\/]electron.exe.sym/.test(f.relative)) {
+					didSeeSymbols = true;
+				}
+			})
+			.on('error', cb)
+			.on('end', function () {
+				assert(didSeeSymbols);
+				cb();
+			});
+	});
+
+	it('should replace ffmpeg', function (cb) {
 		var ffmpegSeen = false;
 
 		var originalFile = null;
