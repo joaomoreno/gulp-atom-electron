@@ -26,6 +26,7 @@
   "homepage": "https://github.com/joaomoreno/gulp-atom-electron",
   "dependencies": {
     "@electron/get": "^1.10.0",
+    "@octokit/rest": "^18.0.14",
     "event-stream": "3.3.4",
     "gulp-filter": "^5.1.0",
     "gulp-rename": "1.2.2",
@@ -33,7 +34,6 @@
     "gulp-vinyl-zip": "^2.1.2",
     "mkdirp": "^0.5.1",
     "object-assign": "^4.0.1",
-    "@octokit/rest": "^17.5.1",
     "plist": "^3.0.1",
     "progress": "^1.1.8",
     "rcedit": "^0.3.0",
