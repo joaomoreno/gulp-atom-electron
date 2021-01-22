@@ -61,7 +61,7 @@ describe("download", function () {
 
     var originalFile = null;
     var original = download({
-      version: "7.2.4",
+      version: "10.1.3",
       platform: "darwin",
       token: process.env["GITHUB_TOKEN"],
     })
@@ -75,7 +75,7 @@ describe("download", function () {
       .on("end", function () {
         var modifiedFile = null;
         var modified = download({
-          version: "7.2.4",
+          version: "10.1.3",
           platform: "darwin",
           token: process.env["GITHUB_TOKEN"],
           ffmpegChromium: true,
@@ -95,6 +95,21 @@ describe("download", function () {
             );
             cb();
           });
+      });
+  });
+
+  it("should error properly", function (cb) {
+    download({
+      version: "7.2.4",
+      platform: "darwin",
+      token: process.env["GITHUB_TOKEN"],
+      repo: "foo",
+    })
+      .once("data", function () {
+        cb(new Error("Should never be here"));
+      })
+      .once("error", function () {
+        cb();
       });
   });
 });
