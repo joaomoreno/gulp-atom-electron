@@ -22,7 +22,7 @@ async function getDownloadUrl(repoUrl, { version, platform, arch, token }) {
     throw new Error(`Release for ${releaseVersion} not found`);
   }
 
-  const { data: assets } = await octokit.repos.listAssetsForRelease({
+  const { data: assets } = await octokit.repos.listReleaseAssets({
     owner,
     repo,
     release_id: release.id,
