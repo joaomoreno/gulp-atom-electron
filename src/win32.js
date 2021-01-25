@@ -7,7 +7,6 @@ var rename = require("gulp-rename");
 var temp = require("temp").track();
 var rcedit = require("rcedit");
 var semver = require("semver");
-var util = require("./util");
 
 function getOriginalAppName(opts) {
   return semver.gte(opts.version, "0.24.0") ? "electron" : "atom";
@@ -82,7 +81,7 @@ function removeDefaultApp() {
   var defaultAppPath = path.join("resources", "default_app");
 
   return es.mapSync(function (f) {
-    if (!util.startsWith(f.relative, defaultAppPath)) {
+    if (f.relative.substr(0, defaultAppPath.length) !== defaultAppPath) {
       return f;
     }
   });

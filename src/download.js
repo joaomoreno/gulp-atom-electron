@@ -2,7 +2,6 @@
 
 var path = require("path");
 const { downloadArtifact } = require("@electron/get");
-const { getDownloadUrl } = require("./util");
 const ProgressBar = require("progress");
 var semver = require("semver");
 var rename = require("gulp-rename");
@@ -60,16 +59,10 @@ async function download(opts) {
     }
   );
 
-  if (opts.repo) {
-    const { downloadUrl, assetName } = await getDownloadUrl(
-      opts.repo,
-      downloadOpts
-    );
-
+  if (opts.mirror) {
     downloadOpts = {
       ...downloadOpts,
-      mirrorOptions: { resolveAssetURL: () => downloadUrl },
-      artifactName: assetName,
+      mirrorOptions: { mirror: opts.mirror },
       unsafelyDisableChecksums: true,
     };
   }
@@ -87,8 +80,8 @@ function downloadStream(opts) {
         zfs
           .src(assets)
           .on("data", (data) => this.emit("data", data))
-          .on("error", (err) => this.emit("error", err))
-          .on("end", () => this.emit("end"));
+          .once("error", (err) => this.emit("error", err))
+          .once("end", () => this.emit("end"));
       },
       (err) => cb(err)
     );
@@ -110,15 +103,9 @@ function getDarwinLibFFMpegPath(opts) {
 
 module.exports = function (opts) {
   const downloadOpts = {
-    version: opts.version,
-    platform: opts.platform,
+    ...opts,
     arch: opts.arch === "arm" ? "armv7l" : opts.arch,
     assetName: semver.gte(opts.version, "0.24.0") ? "electron" : "atom-shell",
-    token: opts.token,
-    quiet: opts.quiet,
-    repo: opts.repo,
-    symbols: opts.symbols,
-    pdbs: opts.pdbs,
   };
 
   if (opts.symbols) {
