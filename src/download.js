@@ -9,7 +9,6 @@ var rename = require("gulp-rename");
 var es = require("event-stream");
 var zfs = require("gulp-vinyl-zip");
 var filter = require("gulp-filter");
-var assign = require("object-assign");
 
 async function download(opts) {
   let bar;
