@@ -36,20 +36,24 @@ async function download(opts) {
   }
 
   const artifactName = opts.assetName ? opts.assetName : "electron";
-
-  let downloadOpts = {
+  const electronOptions = {
     version: opts.version,
     platform: opts.platform,
     arch,
     artifactName,
     artifactSuffix: opts.artifactSuffix,
-    token: opts.token,
     downloadOptions: {
       getProgressCallback: (progress) => {
         if (bar) bar.update(progress.percent);
       },
     },
   };
+
+  if (opts.token) {
+    electronOptions.downloadOptions.headers = {
+      authorization: `token ${opts.token}`,
+    };
+  }
 
   bar = new ProgressBar(
     `Downloading ${artifactName}: [:bar] :percent ETA: :eta seconds `,
@@ -60,17 +64,14 @@ async function download(opts) {
   );
 
   if (opts.mirror) {
-    downloadOpts = {
-      ...downloadOpts,
-      mirrorOptions: { mirror: opts.mirror },
-      unsafelyDisableChecksums: true,
-    };
+    electronOptions.mirrorOptions = { mirror: opts.mirror };
+    electronOptions.unsafelyDisableChecksums = true;
   }
 
   const start = new Date();
   bar.start = start;
 
-  return await downloadArtifact(downloadOpts);
+  return await downloadArtifact(electronOptions);
 }
 
 function downloadStream(opts) {
