@@ -103,12 +103,12 @@ describe("download", function () {
       version: "7.2.4",
       platform: "darwin",
       token: process.env["GITHUB_TOKEN"],
-      mirror: "http://foo.com",
+      repo: "foo",
     })
       .once("data", function () {
         cb(new Error("Should never be here"));
       })
-      .once("error", function (err) {
+      .once("error", function () {
         cb();
       });
   });

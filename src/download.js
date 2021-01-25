@@ -2,6 +2,7 @@
 
 var path = require("path");
 const { downloadArtifact } = require("@electron/get");
+const { getDownloadUrl } = require("./util");
 const ProgressBar = require("progress");
 var semver = require("semver");
 var rename = require("gulp-rename");
@@ -36,24 +37,20 @@ async function download(opts) {
   }
 
   const artifactName = opts.assetName ? opts.assetName : "electron";
-  const electronOptions = {
+
+  let downloadOpts = {
     version: opts.version,
     platform: opts.platform,
     arch,
     artifactName,
     artifactSuffix: opts.artifactSuffix,
+    token: opts.token,
     downloadOptions: {
       getProgressCallback: (progress) => {
         if (bar) bar.update(progress.percent);
       },
     },
   };
-
-  if (opts.token) {
-    electronOptions.downloadOptions.headers = {
-      authorization: `token ${opts.token}`,
-    };
-  }
 
   bar = new ProgressBar(
     `Downloading ${artifactName}: [:bar] :percent ETA: :eta seconds `,
@@ -63,15 +60,24 @@ async function download(opts) {
     }
   );
 
-  if (opts.mirror) {
-    electronOptions.mirrorOptions = { mirror: opts.mirror };
-    electronOptions.unsafelyDisableChecksums = true;
+  if (opts.repo) {
+    const { downloadUrl, assetName } = await getDownloadUrl(
+      opts.repo,
+      downloadOpts
+    );
+
+    downloadOpts = {
+      ...downloadOpts,
+      mirrorOptions: { resolveAssetURL: () => downloadUrl },
+      artifactName: assetName,
+      unsafelyDisableChecksums: true,
+    };
   }
 
   const start = new Date();
   bar.start = start;
 
-  return await downloadArtifact(electronOptions);
+  return await downloadArtifact(downloadOpts);
 }
 
 function downloadStream(opts) {
@@ -81,8 +87,8 @@ function downloadStream(opts) {
         zfs
           .src(assets)
           .on("data", (data) => this.emit("data", data))
-          .once("error", (err) => this.emit("error", err))
-          .once("end", () => this.emit("end"));
+          .on("error", (err) => this.emit("error", err))
+          .on("end", () => this.emit("end"));
       },
       (err) => cb(err)
     );
@@ -104,9 +110,15 @@ function getDarwinLibFFMpegPath(opts) {
 
 module.exports = function (opts) {
   const downloadOpts = {
-    ...opts,
+    version: opts.version,
+    platform: opts.platform,
     arch: opts.arch === "arm" ? "armv7l" : opts.arch,
     assetName: semver.gte(opts.version, "0.24.0") ? "electron" : "atom-shell",
+    token: opts.token,
+    quiet: opts.quiet,
+    repo: opts.repo,
+    symbols: opts.symbols,
+    pdbs: opts.pdbs,
   };
 
   if (opts.symbols) {

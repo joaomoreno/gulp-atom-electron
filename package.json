@@ -4,7 +4,7 @@
   "description": "gulp plugin for packaging Electron applications",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha --exit"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
   "homepage": "https://github.com/joaomoreno/gulp-atom-electron",
   "dependencies": {
     "@electron/get": "^1.12.3",
+    "@octokit/rest": "^18.0.14",
     "event-stream": "3.3.4",
     "gulp-filter": "^5.1.0",
     "gulp-rename": "1.2.2",
