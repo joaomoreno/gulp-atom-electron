@@ -2,13 +2,72 @@
 
 var path = require("path");
 const { downloadArtifact } = require("@electron/get");
-const { getDownloadUrl } = require("./util");
 const ProgressBar = require("progress");
 var semver = require("semver");
 var rename = require("gulp-rename");
 var es = require("event-stream");
 var zfs = require("gulp-vinyl-zip");
 var filter = require("gulp-filter");
+const { Octokit } = require("@octokit/rest");
+const got = require("got");
+
+async function getDownloadUrl(
+  repoUrl,
+  { version, platform, arch, token, assetName }
+) {
+  const [owner, repo] = repoUrl.split("/");
+  const octokit = new Octokit({ auth: token });
+  const releaseVersion = version.startsWith("v") ? version : `v${version}`;
+
+  const { data: release } = await octokit.repos.getReleaseByTag({
+    owner,
+    repo,
+    tag: releaseVersion,
+  });
+
+  if (!release) {
+    throw new Error(`Release for ${releaseVersion} not found`);
+  }
+
+  const { data: assets } = await octokit.repos.listReleaseAssets({
+    owner,
+    repo,
+    release_id: release.id,
+  });
+
+  assetName = assetName || "electron";
+  const asset = assets.find((asset) => {
+    const targetName = `${assetName}-${releaseVersion}-${platform}-${arch}.zip`;
+    return asset.name === targetName;
+  });
+
+  if (!asset) {
+    throw new Error(`Release asset for ${releaseVersion} not found`);
+  }
+
+  const requestOptions = await octokit.repos.getReleaseAsset.endpoint({
+    owner,
+    repo,
+    asset_id: asset.id,
+    headers: {
+      Accept: "application/octet-stream",
+    },
+  });
+
+  const { url, headers } = requestOptions;
+  headers.authorization = `token ${token}`;
+
+  const response = await got(url, {
+    followRedirect: false,
+    method: "HEAD",
+    headers,
+  });
+
+  return {
+    downloadUrl: response.headers.location,
+    assetName: asset.name,
+  };
+}
 
 async function download(opts) {
   let bar;
@@ -61,7 +120,7 @@ async function download(opts) {
   );
 
   if (opts.repo) {
-    const { downloadUrl, assetName } = await getDownloadUrl(
+    const { downloadUrl, assetName: newAssetName } = await getDownloadUrl(
       opts.repo,
       downloadOpts
     );
@@ -69,7 +128,7 @@ async function download(opts) {
     downloadOpts = {
       ...downloadOpts,
       mirrorOptions: { resolveAssetURL: () => downloadUrl },
-      artifactName: assetName,
+      artifactName: newAssetName,
       unsafelyDisableChecksums: true,
     };
   }
@@ -146,3 +205,5 @@ module.exports = function (opts) {
     return es.merge(electron, ffmpeg);
   }
 };
+
+module.exports.download = download;

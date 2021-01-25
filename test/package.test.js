@@ -4,7 +4,6 @@ var assert = require("assert");
 var path = require("path");
 var vfs = require("vinyl-fs");
 var electron = require("../");
-var util = require("../src/util");
 
 describe("electron", function () {
   it("should warn about missing options", function () {
@@ -72,8 +71,7 @@ describe("electron", function () {
           );
           assert(
             !Object.keys(files).some(function (k) {
-              return util.startsWith(
-                k,
+              return k.startsWith(
                 path.join(
                   "FakeTemplateApp.app",
                   "Contents",
@@ -128,7 +126,7 @@ describe("electron", function () {
           assert(files[path.join("resources", "app", "main.js")]);
           assert(
             !Object.keys(files).some(function (k) {
-              return util.startsWith(k, path.join("resources", "default_app"));
+              return k.startsWith(path.join("resources", "default_app"));
             })
           );
 
@@ -173,7 +171,7 @@ describe("electron", function () {
           assert(files[path.join("resources", "app", "main.js")]);
           assert(
             !Object.keys(files).some(function (k) {
-              return util.startsWith(k, path.join("resources", "default_app"));
+              return k.startsWith(path.join("resources", "default_app"));
             })
           );
 

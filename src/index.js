@@ -1,6 +1,5 @@
 "use strict";
 
-var util = require("util");
 var path = require("path");
 var es = require("event-stream");
 var fs = require("fs");
@@ -37,7 +36,7 @@ function _electron(opts) {
       }
 
       var json = JSON.parse(f.contents.toString("utf8"));
-      opts = util._extend({}, opts);
+      opts = { ...opts };
 
       // We need to extract the application's name and version
       // in order to feed it to the various platforms build
