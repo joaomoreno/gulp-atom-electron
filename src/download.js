@@ -3,7 +3,6 @@
 var path = require("path");
 const { downloadArtifact } = require("@electron/get");
 const ProgressBar = require("progress");
-var semver = require("semver");
 var rename = require("gulp-rename");
 var es = require("event-stream");
 var zfs = require("gulp-vinyl-zip");
@@ -12,10 +11,10 @@ const { Octokit } = require("@octokit/rest");
 const got = require("got");
 
 async function getDownloadUrl(
-  repoUrl,
-  { version, platform, arch, token, assetName }
+  ownerRepo,
+  { version, platform, arch, token, artifactName }
 ) {
-  const [owner, repo] = repoUrl.split("/");
+  const [owner, repo] = ownerRepo.split("/");
   const octokit = new Octokit({ auth: token });
   const releaseVersion = version.startsWith("v") ? version : `v${version}`;
 
@@ -35,9 +34,10 @@ async function getDownloadUrl(
     release_id: release.id,
   });
 
-  assetName = assetName || "electron";
+  artifactName = artifactName || "electron";
+
   const asset = assets.find((asset) => {
-    const targetName = `${assetName}-${releaseVersion}-${platform}-${arch}.zip`;
+    const targetName = `${artifactName}-${releaseVersion}-${platform}-${arch}.zip`;
     return asset.name === targetName;
   });
 
@@ -63,10 +63,7 @@ async function getDownloadUrl(
     headers,
   });
 
-  return {
-    downloadUrl: response.headers.location,
-    assetName: asset.name,
-  };
+  return response.headers.location;
 }
 
 async function download(opts) {
@@ -95,13 +92,11 @@ async function download(opts) {
     }
   }
 
-  const artifactName = opts.assetName ? opts.assetName : "electron";
-
   let downloadOpts = {
     version: opts.version,
     platform: opts.platform,
     arch,
-    artifactName,
+    artifactName: opts.artifactName,
     artifactSuffix: opts.artifactSuffix,
     token: opts.token,
     downloadOptions: {
@@ -112,7 +107,7 @@ async function download(opts) {
   };
 
   bar = new ProgressBar(
-    `Downloading ${artifactName}: [:bar] :percent ETA: :eta seconds `,
+    `Downloading ${opts.artifactName}: [:bar] :percent ETA: :eta seconds `,
     {
       curr: 0,
       total: 100,
@@ -120,15 +115,14 @@ async function download(opts) {
   );
 
   if (opts.repo) {
-    const { downloadUrl, assetName: newAssetName } = await getDownloadUrl(
-      opts.repo,
-      downloadOpts
-    );
+    const url = await getDownloadUrl(opts.repo, downloadOpts);
 
     downloadOpts = {
       ...downloadOpts,
-      mirrorOptions: { resolveAssetURL: () => downloadUrl },
-      artifactName: newAssetName,
+      mirrorOptions: {
+        mirror: `https://github.com/${opts.repo}/releases/download/`,
+        resolveAssetURL: () => url,
+      },
       unsafelyDisableChecksums: true,
     };
   }
@@ -172,7 +166,7 @@ module.exports = function (opts) {
     version: opts.version,
     platform: opts.platform,
     arch: opts.arch === "arm" ? "armv7l" : opts.arch,
-    assetName: semver.gte(opts.version, "0.24.0") ? "electron" : "atom-shell",
+    artifactName: "electron",
     token: opts.token,
     quiet: opts.quiet,
     repo: opts.repo,
@@ -195,7 +189,7 @@ module.exports = function (opts) {
 
     let ffmpeg = downloadStream({
       ...downloadOpts,
-      assetName: "ffmpeg",
+      artifactName: "ffmpeg",
     }).pipe(filter("**/*ffmpeg.*"));
 
     if (opts.platform === "darwin") {
