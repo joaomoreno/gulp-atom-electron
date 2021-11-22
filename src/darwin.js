@@ -80,113 +80,119 @@ function patchInfoPlist(opts) {
   var icons = es.through();
   var input = es.through();
   var output = input.pipe(
-    es.through(
-      function (f) {
-        if (f.relative !== infoPlistPath) {
-          return this.emit("data", f);
-        }
-
-        var that = this;
-        var contents = "";
-        f.contents.on("data", function (d) {
-          contents += d;
-        });
-
-        f.contents.on("end", function () {
-          var infoPlist = plist.parse(contents.toString("utf8"));
-
-          opts.darwinBundleIdentifier &&
-            (infoPlist["CFBundleIdentifier"] = opts.darwinBundleIdentifier);
-          opts.darwinApplicationCategoryType &&
-            (infoPlist["LSApplicationCategoryType"] =
-              opts.darwinApplicationCategoryType);
-          infoPlist["CFBundleName"] = opts.productName;
-          infoPlist["CFBundleDisplayName"] =
-            opts.productDisplayName || opts.productName;
-          infoPlist["CFBundleVersion"] = opts.productVersion;
-          infoPlist["CFBundleShortVersionString"] = opts.productVersion;
-          opts.copyright &&
-            (infoPlist["NSHumanReadableCopyright"] = opts.copyright);
-          infoPlist["CFBundleIconFile"] = opts.productName + ".icns";
-
-          if (opts.darwinExecutable) {
-            infoPlist["CFBundleExecutable"] = opts.darwinExecutable;
-          }
-
-          //Register the Application Help Book if it exists
-          if (opts.darwinHelpBookFolder && opts.darwinHelpBookName) {
-            infoPlist["CFBundleHelpBookFolder"] = opts.darwinHelpBookFolder;
-            infoPlist["CFBundleHelpBookName"] = opts.darwinHelpBookName;
-          }
-
-          if (opts.darwinBundleDocumentTypes) {
-            var iconsPaths = [];
-
-            infoPlist["CFBundleDocumentTypes"] = (
-              infoPlist["CFBundleDocumentTypes"] || []
-            ).concat(
-              opts.darwinBundleDocumentTypes.map(function (type) {
-                iconsPaths.push(type.iconFile);
-
-                var result = {
-                  CFBundleTypeName: type.name,
-                  CFBundleTypeRole: type.role,
-                  CFBundleTypeOSTypes: type.ostypes,
-                  CFBundleTypeExtensions: type.extensions,
-                  CFBundleTypeIconFile: path.basename(type.iconFile),
-                };
-
-                if (type.utis) {
-                  result["LSItemContentTypes"] = type.utis;
-                }
-
-                return result;
-              })
-            );
-
-            if (iconsPaths.length) {
-              didCloseIcons = true;
-              es.merge(
-                iconsPaths.map(function (iconPath) {
-                  return vfs.src(iconPath).pipe(
-                    rename(function (path) {
-                      path.dirname = resourcesPath;
-                    })
-                  );
-                })
-              ).pipe(icons);
-            }
-          }
-
-          if (opts.darwinBundleURLTypes) {
-            infoPlist["CFBundleURLTypes"] = opts.darwinBundleURLTypes.map(
-              function (type) {
-                return {
-                  CFBundleTypeRole: type.role,
-                  CFBundleURLName: type.name,
-                  CFBundleURLSchemes: type.urlSchemes,
-                };
-              }
-            );
-          }
-
-          if (opts.darwinForceDarkModeSupport) {
-            infoPlist["NSRequiresAquaSystemAppearance"] = false;
-          }
-
-          f.contents = Buffer.from(plist.build(infoPlist), "utf8");
-          that.emit("data", f);
-        });
-      },
-      function () {
-        if (!didCloseIcons) {
-          es.readArray([]).pipe(icons);
-        }
-
-        this.emit("end");
+    es.map(function (f, cb) {
+      if (f.relative !== infoPlistPath) {
+        return cb(null, f);
       }
-    )
-  );
+
+      var contents = "";
+
+      f.contents.on("error", function (err) {
+        cb(err);
+      });
+
+      f.contents.on("data", function (d) {
+        contents += d;
+      });
+
+      f.contents.on("end", function () {
+        var infoPlist = plist.parse(contents.toString("utf8"));
+
+        opts.darwinBundleIdentifier &&
+          (infoPlist["CFBundleIdentifier"] = opts.darwinBundleIdentifier);
+        opts.darwinApplicationCategoryType &&
+          (infoPlist["LSApplicationCategoryType"] =
+            opts.darwinApplicationCategoryType);
+        infoPlist["CFBundleName"] = opts.productName;
+        infoPlist["CFBundleDisplayName"] =
+          opts.productDisplayName || opts.productName;
+        infoPlist["CFBundleVersion"] = opts.productVersion;
+        infoPlist["CFBundleShortVersionString"] = opts.productVersion;
+        opts.copyright &&
+          (infoPlist["NSHumanReadableCopyright"] = opts.copyright);
+        infoPlist["CFBundleIconFile"] = opts.productName + ".icns";
+
+        if (opts.darwinExecutable) {
+          infoPlist["CFBundleExecutable"] = opts.darwinExecutable;
+        }
+
+        //Register the Application Help Book if it exists
+        if (opts.darwinHelpBookFolder && opts.darwinHelpBookName) {
+          infoPlist["CFBundleHelpBookFolder"] = opts.darwinHelpBookFolder;
+          infoPlist["CFBundleHelpBookName"] = opts.darwinHelpBookName;
+        }
+
+        if (opts.darwinBundleDocumentTypes) {
+          var iconsPaths = [];
+
+          infoPlist["CFBundleDocumentTypes"] = (
+            infoPlist["CFBundleDocumentTypes"] || []
+          ).concat(
+            opts.darwinBundleDocumentTypes.map(function (type) {
+              iconsPaths.push(type.iconFile);
+
+              var result = {
+                CFBundleTypeName: type.name,
+                CFBundleTypeRole: type.role,
+                CFBundleTypeOSTypes: type.ostypes,
+                CFBundleTypeExtensions: type.extensions,
+                CFBundleTypeIconFile: path.basename(type.iconFile),
+              };
+
+              if (type.utis) {
+                result["LSItemContentTypes"] = type.utis;
+              }
+
+              return result;
+            })
+          );
+
+          if (iconsPaths.length) {
+            didCloseIcons = true;
+            es.merge(
+              iconsPaths.map(function (iconPath) {
+                return vfs.src(iconPath).pipe(
+                  rename(function (path) {
+                    path.dirname = resourcesPath;
+                  })
+                );
+              })
+            ).pipe(icons);
+          }
+        }
+
+        if (opts.darwinBundleURLTypes) {
+          infoPlist["CFBundleURLTypes"] = opts.darwinBundleURLTypes.map(
+            function (type) {
+              return {
+                CFBundleTypeRole: type.role,
+                CFBundleURLName: type.name,
+                CFBundleURLSchemes: type.urlSchemes,
+              };
+            }
+          );
+        }
+
+        if (opts.darwinForceDarkModeSupport) {
+          infoPlist["NSRequiresAquaSystemAppearance"] = false;
+        }
+
+        f.contents = Buffer.from(plist.build(infoPlist), "utf8");
+        cb(null, f);
+      });
+    }))
+    .pipe(
+      es.through(
+        null,
+        function () {
+          if (!didCloseIcons) {
+            es.readArray([]).pipe(icons);
+          }
+
+          this.emit("end");
+        }
+      )
+    );
 
   return es.duplex(input, es.merge(output, icons));
 }
@@ -214,71 +220,75 @@ function createEntitlementsPlist(opts) {
 }
 
 function patchHelperInfoPlist(opts) {
-  var contentsPath = path.join(getOriginalAppFullName(opts), "Contents");
-  var infoPlistPath = path.join(contentsPath, "Info.plist");
   var didCloseIcons = false;
 
   var icons = es.through();
   var input = es.through();
   var output = input.pipe(
-    es.through(
-      function (f) {
-        if (
-          !/Contents\/Frameworks\/Electron\ Helper( \w+)?\.app\/Contents\/Info.plist$/i.test(
-            f.relative
-          )
-        ) {
-          return this.emit("data", f);
-        }
-
-        var that = this;
-        var contents = "";
-        f.contents.on("data", function (d) {
-          contents += d;
-        });
-
-        f.contents.on("end", function () {
-          var infoPlist = plist.parse(contents.toString("utf8"));
-          var match = /\.helper\.([^.]+)$/.exec(
-            infoPlist["CFBundleIdentifier"] || ""
-          );
-          var suffix = match ? match[1] : "";
-
-          if (opts.darwinBundleIdentifier) {
-            infoPlist["CFBundleIdentifier"] =
-              opts.darwinBundleIdentifier + ".helper";
-
-            if (suffix) {
-              infoPlist["CFBundleIdentifier"] += "." + suffix;
-            }
-          }
-
-          infoPlist["CFBundleName"] = opts.productName + " Helper";
-          if (suffix) {
-            infoPlist["CFBundleName"] += " " + suffix;
-          }
-
-          if (infoPlist["CFBundleDisplayName"]) {
-            infoPlist["CFBundleDisplayName"] = infoPlist["CFBundleName"];
-          }
-
-          if (infoPlist["CFBundleExecutable"]) {
-            infoPlist["CFBundleExecutable"] = infoPlist["CFBundleName"];
-          }
-
-          f.contents = Buffer.from(plist.build(infoPlist), "utf8");
-          that.emit("data", f);
-        });
-      },
-      function () {
-        if (!didCloseIcons) {
-          es.readArray([]).pipe(icons);
-        }
-
-        this.emit("end");
+    es.map(function (f, cb) {
+      if (
+        !/Contents\/Frameworks\/Electron\ Helper( \w+)?\.app\/Contents\/Info.plist$/i.test(
+          f.relative
+        )
+      ) {
+        return cb(null, f);
       }
-    )
-  );
+
+      var contents = "";
+
+      f.contents.on("error", function (err) {
+        cb(err);
+      });
+
+      f.contents.on("data", function (d) {
+        contents += d;
+      });
+
+      f.contents.on("end", function () {
+        var infoPlist = plist.parse(contents.toString("utf8"));
+        var match = /\.helper\.([^.]+)$/.exec(
+          infoPlist["CFBundleIdentifier"] || ""
+        );
+        var suffix = match ? match[1] : "";
+
+        if (opts.darwinBundleIdentifier) {
+          infoPlist["CFBundleIdentifier"] =
+            opts.darwinBundleIdentifier + ".helper";
+
+          if (suffix) {
+            infoPlist["CFBundleIdentifier"] += "." + suffix;
+          }
+        }
+
+        infoPlist["CFBundleName"] = opts.productName + " Helper";
+        if (suffix) {
+          infoPlist["CFBundleName"] += " " + suffix;
+        }
+
+        if (infoPlist["CFBundleDisplayName"]) {
+          infoPlist["CFBundleDisplayName"] = infoPlist["CFBundleName"];
+        }
+
+        if (infoPlist["CFBundleExecutable"]) {
+          infoPlist["CFBundleExecutable"] = infoPlist["CFBundleName"];
+        }
+
+        f.contents = Buffer.from(plist.build(infoPlist), "utf8");
+        cb(null, f);
+      });
+    }))
+    .pipe(
+      es.through(
+        null,
+        function () {
+          if (!didCloseIcons) {
+            es.readArray([]).pipe(icons);
+          }
+
+          this.emit("end");
+        }
+      )
+    );
 
   return es.duplex(input, es.merge(output, icons));
 }

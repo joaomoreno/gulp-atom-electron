@@ -3,6 +3,7 @@
 var assert = require("assert");
 var path = require("path");
 var vfs = require("vinyl-fs");
+var plist = require("plist");
 var electron = require("../");
 
 describe("electron", function () {
@@ -60,13 +61,13 @@ describe("electron", function () {
         .on("end", function () {
           assert(
             files[
-              path.join(
-                "FakeTemplateApp.app",
-                "Contents",
-                "Resources",
-                "app",
-                "main.js"
-              )
+            path.join(
+              "FakeTemplateApp.app",
+              "Contents",
+              "Resources",
+              "app",
+              "main.js"
+            )
             ]
           );
           assert(
@@ -95,6 +96,16 @@ describe("electron", function () {
           );
           assert.equal("FakeTemplateApp", packageJson.name);
           assert.equal("0.0.1", packageJson.version);
+
+          var infoPlistPath = path.join(
+            "FakeTemplateApp.app",
+            "Contents",
+            "Info.plist",
+          );
+
+          var infoPlist = plist.parse(files[infoPlistPath].contents.toString("utf8"));
+          assert.equal(infoPlist["CFBundleName"], "FakeTemplateApp")
+          assert.equal(infoPlist["CFBundleDisplayName"], "FakeTemplateApp")
 
           cb();
         });
