@@ -12,7 +12,7 @@ const got = require("got");
 
 async function getDownloadUrl(
   ownerRepo,
-  { version, platform, arch, token, artifactName }
+  { version, platform, arch, token, artifactName, artifactSuffix }
 ) {
   const [owner, repo] = ownerRepo.split("/");
   const octokit = new Octokit({ auth: token });
@@ -36,8 +36,10 @@ async function getDownloadUrl(
 
   artifactName = artifactName || "electron";
 
+  const targetName = artifactSuffix ?
+    `${artifactName}-${releaseVersion}-${platform}-${arch}-${artifactSuffix}.zip` :
+    `${artifactName}-${releaseVersion}-${platform}-${arch}.zip`;
   const asset = assets.find((asset) => {
-    const targetName = `${artifactName}-${releaseVersion}-${platform}-${arch}.zip`;
     return asset.name === targetName;
   });
 
