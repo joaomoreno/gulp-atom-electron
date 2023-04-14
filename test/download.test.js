@@ -1,5 +1,4 @@
 var assert = require("assert");
-var fs = require("fs");
 var path = require("path");
 var filter = require("gulp-filter");
 var buffer = require("gulp-buffer");
@@ -27,6 +26,32 @@ describe("download", function () {
       .on("error", cb)
       .on("end", function () {
         assert(didSeeInfoPList);
+        cb();
+      });
+  });
+
+  it("should download PDBs", function (cb) {
+    var didSeePDBs = false;
+
+    download({
+      version: "24.1.1",
+      platform: "win32",
+      arch: "x64",
+      pdbs: true,
+      token: process.env["GITHUB_TOKEN"],
+    })
+      .on("data", function (f) {
+        if (
+          /ffmpeg.dll.pdb/.test(
+            f.relative
+          )
+        ) {
+          didSeePDBs = true;
+        }
+      })
+      .on("error", cb)
+      .on("end", function () {
+        assert(didSeePDBs);
         cb();
       });
   });
